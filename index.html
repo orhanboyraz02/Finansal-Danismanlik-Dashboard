@@ -27,7 +27,8 @@
         input:focus, select:focus, textarea:focus { border-color: rgba(255,215,0,0.5) !important; }
         .btn { transition: all 0.2s; }
         .btn:hover { transform: translateY(-1px); }
-        canvas { max-height: 300px; }
+        canvas { max-height: 350px; }
+        .progress-ring { transition: stroke-dashoffset 0.5s; }
     </style>
 </head>
 <body class="text-gray-200 flex flex-col min-h-screen">
@@ -90,7 +91,7 @@
 <footer class="w-full py-6 px-6 mt-auto border-t border-yellow-500/10 bg-[#0a0e1a]">
     <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-6 text-sm text-gray-400">
         <div><h4 class="gold-text font-bold text-lg mb-2">Finansal Danışmanlık Platformu</h4><p>Finansal özgürlüğe giden yol</p></div>
-        <div><h4 class="text-white font-semibold mb-2">Hızlı Erişim</h4><ul class="space-y-1"><li><a href="#" onclick="navigateTo('dashboard')" class="hover:text-yellow-400">Dashboard</a></li><li><a href="#" onclick="navigateTo('portfoy')" class="hover:text-yellow-400">Portföy</a></li></ul></div>
+        <div><h4 class="text-white font-semibold mb-2">Hızlı Erişim</h4><ul class="space-y-1"><li><a href="#" onclick="navigateTo('dashboard')" class="hover:text-yellow-400">Dashboard</a></li><li><a href="#" onclick="navigateTo('hedefler')" class="hover:text-yellow-400">FIRE Hedefleri</a></li></ul></div>
         <div><h4 class="text-white font-semibold mb-2">İletişim</h4>
             <p><i class="fab fa-whatsapp text-green-400"></i> <a href="https://wa.me/905418660202" class="hover:text-green-400">0541 866 0202</a></p>
             <p><i class="far fa-envelope"></i> <a href="mailto:orhanboyraz0216@gmail.com" class="hover:text-yellow-400">orhanboyraz0216@gmail.com</a></p>
@@ -114,11 +115,18 @@ if (!S.get('users')) S.set('users', [
 ]);
 if (!S.get('currentUser')) S.set('currentUser', null);
 if (!S.get('transactions')) S.set('transactions', [
-    { id: 1, type: 'income', category: 'Maaş', amount: 45000, date: '2025-06-01' },
-    { id: 2, type: 'expense', category: 'Kira', amount: 12000, date: '2025-06-02' },
-    { id: 3, type: 'expense', category: 'Market', amount: 4500, date: '2025-06-05' },
-    { id: 4, type: 'income', category: 'Freelance', amount: 8500, date: '2025-06-08' },
-    { id: 5, type: 'expense', category: 'Faturalar', amount: 1800, date: '2025-06-10' },
+    { id: 1, type: 'income', category: 'Maaş', amount: 45000, date: '2025-01-15' },
+    { id: 2, type: 'expense', category: 'Kira', amount: 12000, date: '2025-01-20' },
+    { id: 3, type: 'expense', category: 'Market', amount: 4500, date: '2025-02-05' },
+    { id: 4, type: 'income', category: 'Freelance', amount: 8500, date: '2025-02-15' },
+    { id: 5, type: 'expense', category: 'Faturalar', amount: 1800, date: '2025-03-01' },
+    { id: 6, type: 'income', category: 'Maaş', amount: 45000, date: '2025-03-15' },
+    { id: 7, type: 'expense', category: 'Market', amount: 5200, date: '2025-03-20' },
+    { id: 8, type: 'income', category: 'Temettü', amount: 3200, date: '2025-04-01' },
+    { id: 9, type: 'expense', category: 'Kira', amount: 12000, date: '2025-04-15' },
+    { id: 10, type: 'income', category: 'Maaş', amount: 45000, date: '2025-04-20' },
+    { id: 11, type: 'expense', category: 'Eğlence', amount: 3000, date: '2025-05-05' },
+    { id: 12, type: 'income', category: 'Freelance', amount: 12000, date: '2025-05-15' },
 ]);
 if (!S.get('portfolio')) S.set('portfolio', [
     { id: 1, name: 'BIST 100', type: 'Hisse', cost: 50000, value: 65000, color: '#4ade80' },
@@ -130,7 +138,11 @@ if (!S.get('portfolio')) S.set('portfolio', [
     { id: 7, name: 'Gayrimenkul', type: 'Emlak', cost: 500000, value: 650000, color: '#f472b6' },
     { id: 8, name: 'Nakit TL', type: 'Nakit', cost: 10000, value: 10000, color: '#94a3b8' }
 ]);
-if (!S.get('goals')) S.set('goals', [{ target: 5000000, current: 895000, age: 35, targetAge: 50, monthlyExpense: 30000 }]);
+if (!S.get('goals')) S.set('goals', [{ 
+    target: 5000000, current: 895000, monthlyContribution: 20000, 
+    annualReturn: 12, inflation: 18, age: 35, targetAge: 50, monthlyExpense: 30000 
+}]);
+if (!S.get('budget')) S.set('budget', { monthlyIncome: 56700, monthlyExpense: 35000, savings: 21700, debts: 50000 });
 if (!S.get('contentLibrary')) S.set('contentLibrary', [
     { id: 1, type: 'video', title: 'Bileşik Getiri Stratejileri', duration: '12:40' },
     { id: 2, type: 'makale', title: 'Finansal Özgürlük Rehberi', duration: '8 dk' }
@@ -146,15 +158,23 @@ let currentUser = S.get('currentUser');
 let transactions = S.get('transactions');
 let portfolio = S.get('portfolio');
 let goals = S.get('goals');
+let budget = S.get('budget');
 let users = S.get('users');
 let contentLibrary = S.get('contentLibrary');
 let marketProducts = S.get('marketProducts');
+let charts = {};
 
 function fmt(n) { return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', minimumFractionDigits: 0 }).format(n); }
-function save() { S.set('currentUser',currentUser); S.set('transactions',transactions); S.set('portfolio',portfolio); S.set('goals',goals); S.set('users',users); S.set('contentLibrary',contentLibrary); S.set('marketProducts',marketProducts); }
+function save() { 
+    S.set('currentUser',currentUser); S.set('transactions',transactions); 
+    S.set('portfolio',portfolio); S.set('goals',goals); S.set('budget',budget); 
+    S.set('users',users); S.set('contentLibrary',contentLibrary); S.set('marketProducts',marketProducts); 
+}
 
 // ==================== NAVIGATION ====================
 function navigateTo(page) {
+    Object.values(charts).forEach(c => { try { c.destroy(); } catch(e) {} });
+    charts = {};
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
     const el = document.getElementById('page-'+page);
     if (el) el.classList.add('active-page');
@@ -193,27 +213,19 @@ function renderAuth() {
                 <button type="submit" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-white font-semibold py-3 rounded-xl btn">Giriş Yap</button>
             </form>
             <div class="mt-4 p-3 bg-yellow-500/5 rounded-xl text-xs text-gray-400">
-                <p class="text-yellow-400 font-semibold mb-1">Demo Hesaplar:</p>
+                <p class="text-yellow-400 font-semibold mb-1">Demo:</p>
                 <p>👤 berkan@ornek.com / 123456</p>
                 <p>👑 admin@ffos.com / admin123</p>
             </div>
         </div>
     </div>`;
-    
     document.getElementById('login-form').addEventListener('submit', function(e) {
         e.preventDefault();
         const email = document.getElementById('login-email').value.trim();
         const pass = document.getElementById('login-password').value;
-        const allUsers = S.get('users');
-        const user = allUsers.find(u => u.email === email && u.password === pass);
-        if (user) {
-            currentUser = user;
-            S.set('currentUser', user);
-            updateSidebar();
-            navigateTo('dashboard');
-        } else {
-            alert('❌ Geçersiz e-posta veya şifre!');
-        }
+        const user = S.get('users').find(u => u.email === email && u.password === pass);
+        if (user) { currentUser = user; S.set('currentUser', user); updateSidebar(); navigateTo('dashboard'); }
+        else alert('❌ Geçersiz!');
     });
 }
 
@@ -230,71 +242,93 @@ function updateSidebar() {
         { page: 'kutuphane', icon: 'fa-book-open', label: 'Kütüphane' },
         { page: 'rapor', icon: 'fa-file-pdf', label: 'PDF Rapor' },
     ];
-    if (currentUser?.role === 'admin') items.push({ page: 'admin', icon: 'fa-shield-alt', label: 'Admin Panel' });
-    
-    const html = items.map(i => `<div class="nav-item flex items-center gap-3 text-sm" data-page="${i.page}" onclick="navigateTo('${i.page}')"><i class="fas ${i.icon} w-5 text-center"></i><span>${i.label}</span></div>`).join('');
+    if (currentUser?.role === 'admin') items.push({ page: 'admin', icon: 'fa-shield-alt', label: 'Admin' });
+    const html = items.map(i => `<div class="nav-item flex items-center gap-3 text-sm" data-page="${i.page}" onclick="navigateTo('${i.page}')"><i class="fas ${i.icon} w-5"></i><span>${i.label}</span></div>`).join('');
     document.getElementById('sidebar-nav').innerHTML = html;
     document.getElementById('mobile-nav').innerHTML = html;
     if (currentUser) {
         document.getElementById('sidebar-username').textContent = currentUser.name;
-        const plans = { free:'Free', pro:'Pro', premium:'Premium', 'vip-elite':'Vip Elite' };
-        document.getElementById('sidebar-plan').textContent = plans[currentUser.plan] || 'Free';
+        document.getElementById('sidebar-plan').textContent = { free:'Free', pro:'Pro', premium:'Premium', 'vip-elite':'Vip Elite' }[currentUser.plan] || 'Free';
     }
 }
+function toggleSidebar() { document.getElementById('mobile-sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('hidden'); }
+function logout() { currentUser = null; S.set('currentUser', null); navigateTo('auth'); }
 
-function toggleSidebar() {
-    document.getElementById('mobile-sidebar').classList.toggle('open');
-    document.getElementById('overlay').classList.toggle('hidden');
-}
-
-function logout() {
-    currentUser = null;
-    S.set('currentUser', null);
-    navigateTo('auth');
-}
-
-// ==================== DASHBOARD ====================
-let dashChart = null;
+// ==================== DASHBOARD (GRAFİKLİ) ====================
 function renderDashboard() {
-    const ti = transactions.filter(t=>t.type==='income').reduce((a,b)=>a+b.amount,0);
-    const te = transactions.filter(t=>t.type==='expense').reduce((a,b)=>a+b.amount,0);
+    const incomeTotal = transactions.filter(t=>t.type==='income').reduce((a,b)=>a+b.amount,0);
+    const expenseTotal = transactions.filter(t=>t.type==='expense').reduce((a,b)=>a+b.amount,0);
+    const monthlyData = {};
+    transactions.forEach(t => {
+        const m = t.date.substring(0,7);
+        if (!monthlyData[m]) monthlyData[m] = { income:0, expense:0 };
+        if (t.type==='income') monthlyData[m].income += t.amount;
+        else monthlyData[m].expense += t.amount;
+    });
+    const months = Object.keys(monthlyData).sort();
     
     document.getElementById('page-dashboard').innerHTML = `
     <h1 class="text-3xl font-bold gold-text mb-2">Hoş Geldiniz, ${currentUser?.name}!</h1>
-    <p class="text-gray-400 mb-6">Finansal durum özeti</p>
+    <p class="text-gray-400 mb-6">Finansal özet ve ilerleme</p>
     
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div class="glass-card p-5"><p class="text-gray-400 text-sm">Gelir</p><p class="text-2xl font-bold text-green-400">${fmt(ti)}</p></div>
-        <div class="glass-card p-5"><p class="text-gray-400 text-sm">Gider</p><p class="text-2xl font-bold text-red-400">${fmt(te)}</p></div>
-        <div class="glass-card p-5"><p class="text-gray-400 text-sm">Net</p><p class="text-2xl font-bold text-blue-400">${fmt(ti-te)}</p></div>
-        <div class="glass-card p-5"><p class="text-gray-400 text-sm">Birikim %</p><p class="text-2xl font-bold text-yellow-400">%${ti>0?Math.round((ti-te)/ti*100):0}</p></div>
+        <div class="glass-card p-5"><p class="text-gray-400 text-sm">Toplam Gelir</p><p class="text-2xl font-bold text-green-400">${fmt(incomeTotal)}</p></div>
+        <div class="glass-card p-5"><p class="text-gray-400 text-sm">Toplam Gider</p><p class="text-2xl font-bold text-red-400">${fmt(expenseTotal)}</p></div>
+        <div class="glass-card p-5"><p class="text-gray-400 text-sm">Net Varlık</p><p class="text-2xl font-bold text-blue-400">${fmt(incomeTotal-expenseTotal)}</p></div>
+        <div class="glass-card p-5"><p class="text-gray-400 text-sm">Birikim Oranı</p><p class="text-2xl font-bold text-yellow-400">%${incomeTotal>0?Math.round((incomeTotal-expenseTotal)/incomeTotal*100):0}</p></div>
     </div>
     
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="glass-card p-5"><h3 class="font-semibold mb-3">📊 Gelir/Gider Dağılımı</h3><canvas id="dashChart1" height="200"></canvas></div>
-        <div class="glass-card p-5"><h3 class="font-semibold mb-3">📈 Portföy Dağılımı</h3><canvas id="dashChart2" height="200"></canvas></div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="glass-card p-5"><h3 class="font-semibold mb-3">📊 Aylık Gelir/Gider Trendi</h3><canvas id="chart1"></canvas></div>
+        <div class="glass-card p-5"><h3 class="font-semibold mb-3">🍩 Gelir/Gider Dağılımı</h3><canvas id="chart2"></canvas></div>
+        <div class="glass-card p-5"><h3 class="font-semibold mb-3">📈 Portföy Dağılımı</h3><canvas id="chart3"></canvas></div>
+        <div class="glass-card p-5"><h3 class="font-semibold mb-3">🎯 FIRE İlerleme</h3><canvas id="chart4"></canvas></div>
     </div>`;
     
     setTimeout(() => {
-        // Gelir/Gider Donut
-        const ctx1 = document.getElementById('dashChart1')?.getContext('2d');
-        if (ctx1) {
-            new Chart(ctx1, { type: 'doughnut', data: { labels: ['Gelir','Gider'], datasets: [{ data: [ti, te], backgroundColor: ['#4ade80','#f87171'], borderWidth: 0 }] }, options: { plugins: { legend: { labels: { color: '#fff' } } } } });
-        }
-        // Portföy Donut
-        const ctx2 = document.getElementById('dashChart2')?.getContext('2d');
-        if (ctx2) {
-            new Chart(ctx2, { type: 'doughnut', data: { labels: portfolio.map(p=>p.name), datasets: [{ data: portfolio.map(p=>p.value), backgroundColor: portfolio.map(p=>p.color), borderWidth: 0 }] }, options: { plugins: { legend: { labels: { color: '#fff' } } } } });
-        }
-    }, 200);
+        // Aylık trend
+        const ctx1 = document.getElementById('chart1')?.getContext('2d');
+        if (ctx1) charts.c1 = new Chart(ctx1, { type: 'line', data: { labels: months, datasets: [
+            { label:'Gelir', data:months.map(m=>monthlyData[m].income), borderColor:'#4ade80', tension:0.3, fill:false },
+            { label:'Gider', data:months.map(m=>monthlyData[m].expense), borderColor:'#f87171', tension:0.3, fill:false }
+        ]}, options: { plugins:{legend:{labels:{color:'#fff'}}}, scales:{x:{ticks:{color:'#fff'}},y:{ticks:{color:'#fff'}}} } });
+        
+        // Gelir/Gider donut
+        const ctx2 = document.getElementById('chart2')?.getContext('2d');
+        if (ctx2) charts.c2 = new Chart(ctx2, { type:'doughnut', data:{ labels:['Gelir','Gider'], datasets:[{ data:[incomeTotal,expenseTotal], backgroundColor:['#4ade80','#f87171'] }] }, options:{ plugins:{legend:{labels:{color:'#fff'}}} } });
+        
+        // Portföy donut
+        const ctx3 = document.getElementById('chart3')?.getContext('2d');
+        if (ctx3) charts.c3 = new Chart(ctx3, { type:'doughnut', data:{ labels:portfolio.map(p=>p.name), datasets:[{ data:portfolio.map(p=>p.value), backgroundColor:portfolio.map(p=>p.color) }] }, options:{ plugins:{legend:{labels:{color:'#fff'}}} } });
+        
+        // FIRE ilerleme bar
+        const g = goals[0];
+        const fireNum = g.monthlyExpense * 12 * 25;
+        const progress = Math.min(100, (g.current/fireNum*100));
+        const ctx4 = document.getElementById('chart4')?.getContext('2d');
+        if (ctx4) charts.c4 = new Chart(ctx4, { type:'bar', data:{ labels:['Mevcut','Hedef'], datasets:[{ data:[g.current, fireNum], backgroundColor:['#fbbf24','#4ade80'] }] }, options:{ indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{ticks:{color:'#fff'}},y:{ticks:{color:'#fff'}}} } });
+    }, 300);
 }
 
-// ==================== FİNANS ====================
+// ==================== FİNANS (BÜTÇE GRAFİĞİ) ====================
 function renderFinans() {
+    const catExpense = {};
+    transactions.filter(t=>t.type==='expense').forEach(t => {
+        catExpense[t.category] = (catExpense[t.category]||0) + t.amount;
+    });
+    const catIncome = {};
+    transactions.filter(t=>t.type==='income').forEach(t => {
+        catIncome[t.category] = (catIncome[t.category]||0) + t.amount;
+    });
+    
     document.getElementById('page-finans').innerHTML = `
-    <h2 class="text-3xl font-bold gold-text mb-6">💰 Gelir/Gider Takibi</h2>
+    <h2 class="text-3xl font-bold gold-text mb-6">💰 Gelir/Gider & Bütçe Takibi</h2>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="glass-card p-5"><h3 class="font-semibold mb-3">📊 Kategori Bazlı Gider</h3><canvas id="finCh1"></canvas></div>
+        <div class="glass-card p-5"><h3 class="font-semibold mb-3">📈 Kategori Bazlı Gelir</h3><canvas id="finCh2"></canvas></div>
+    </div>
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="glass-card p-6"><h3 class="font-semibold mb-4">Yeni İşlem</h3>
+        <div class="glass-card p-6"><h3 class="font-semibold mb-3">Yeni İşlem</h3>
             <form id="tx-form" class="space-y-3">
                 <select id="tx-type" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white"><option value="income">💰 Gelir</option><option value="expense">💸 Gider</option></select>
                 <input id="tx-cat" placeholder="Kategori" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white">
@@ -303,26 +337,29 @@ function renderFinans() {
                 <button type="submit" class="w-full bg-yellow-500 text-white py-3 rounded-xl btn">➕ Ekle</button>
             </form>
         </div>
-        <div class="glass-card p-6 lg:col-span-2"><h3 class="font-semibold mb-4">İşlemler</h3><div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="text-gray-400"><th>Tür</th><th>Kategori</th><th>Tutar</th><th>Tarih</th><th></th></tr></thead><tbody id="tx-list"></tbody></table></div></div>
+        <div class="glass-card p-6 lg:col-span-2"><h3 class="font-semibold mb-3">İşlemler</h3><div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="text-gray-400"><th>Tür</th><th>Kategori</th><th>Tutar</th><th>Tarih</th><th></th></tr></thead><tbody id="tx-list"></tbody></table></div></div>
     </div>`;
     
-    function list() {
-        document.getElementById('tx-list').innerHTML = transactions.slice().reverse().map(t => `
-            <tr class="border-b border-white/5"><td>${t.type==='income'?'<span class="text-green-400">↑ Gelir</span>':'<span class="text-red-400">↓ Gider</span>'}</td><td>${t.category}</td><td class="font-semibold">${fmt(t.amount)}</td><td>${t.date}</td>
-            <td><button onclick="delTx(${t.id})" class="text-red-400 hover:text-red-300"><i class="fas fa-trash"></i></button></td></tr>
-        `).join('');
-    }
-    list();
+    document.getElementById('tx-list').innerHTML = transactions.slice().reverse().map(t => `
+        <tr class="border-b border-white/5"><td>${t.type==='income'?'<span class="text-green-400">↑ Gelir</span>':'<span class="text-red-400">↓ Gider</span>'}</td><td>${t.category}</td><td class="font-semibold">${fmt(t.amount)}</td><td>${t.date}</td><td><button onclick="delTx(${t.id})" class="text-red-400"><i class="fas fa-trash"></i></button></td></tr>
+    `).join('');
     
     document.getElementById('tx-form').addEventListener('submit', function(e) {
         e.preventDefault();
-        transactions.push({ id: Date.now(), type: document.getElementById('tx-type').value, category: document.getElementById('tx-cat').value, amount: +document.getElementById('tx-amt').value, date: document.getElementById('tx-date').value });
-        save(); list(); this.reset();
+        transactions.push({ id:Date.now(), type:document.getElementById('tx-type').value, category:document.getElementById('tx-cat').value, amount:+document.getElementById('tx-amt').value, date:document.getElementById('tx-date').value });
+        save(); renderFinans();
     });
+    
+    setTimeout(() => {
+        const c1 = document.getElementById('finCh1')?.getContext('2d');
+        if (c1) charts.f1 = new Chart(c1, { type:'pie', data:{ labels:Object.keys(catExpense), datasets:[{ data:Object.values(catExpense), backgroundColor:['#f87171','#fb923c','#fbbf24','#a3e635','#34d399','#60a5fa'] }] }, options:{ plugins:{legend:{labels:{color:'#fff'}}} } });
+        const c2 = document.getElementById('finCh2')?.getContext('2d');
+        if (c2) charts.f2 = new Chart(c2, { type:'pie', data:{ labels:Object.keys(catIncome), datasets:[{ data:Object.values(catIncome), backgroundColor:['#4ade80','#22d3ee','#a78bfa','#f472b6'] }] }, options:{ plugins:{legend:{labels:{color:'#fff'}}} } });
+    }, 200);
 }
 window.delTx = function(id) { if(confirm('Sil?')){ transactions = transactions.filter(t=>t.id!==id); save(); renderFinans(); } };
 
-// ==================== PORTFÖY ====================
+// ==================== PORTFÖY (GRAFİKLİ) ====================
 function renderPortfoy() {
     const tv = portfolio.reduce((a,b)=>a+b.value,0);
     const tc = portfolio.reduce((a,b)=>a+b.cost,0);
@@ -334,51 +371,169 @@ function renderPortfoy() {
         <div class="glass-card p-5 text-center"><p class="text-gray-400">Maliyet</p><p class="text-2xl font-bold text-blue-400">${fmt(tc)}</p></div>
         <div class="glass-card p-5 text-center"><p class="text-gray-400">K/Z</p><p class="text-2xl font-bold ${tv-tc>=0?'text-green-400':'text-red-400'}">${fmt(tv-tc)}</p></div>
     </div>
-    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="glass-card p-5"><h3 class="font-semibold mb-3">🍩 Varlık Dağılımı</h3><canvas id="portCh1"></canvas></div>
+        <div class="glass-card p-5"><h3 class="font-semibold mb-3">📊 Kar/Zarar Analizi</h3><canvas id="portCh2"></canvas></div>
+    </div>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="glass-card p-6">
-            <h3 class="font-semibold mb-4">Portföy Dağılımı</h3>
-            <canvas id="portfoyChart" height="200"></canvas>
+        <div class="glass-card p-6"><h3 class="font-semibold mb-3">Yeni Varlık</h3>
+            <form id="add-port" class="space-y-2">
+                <input id="p-name" placeholder="Ad" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white">
+                <input id="p-type" placeholder="Tür" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white">
+                <input id="p-cost" type="number" placeholder="Maliyet" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white">
+                <input id="p-value" type="number" placeholder="Güncel Değer" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white">
+                <button type="submit" class="w-full bg-green-500 text-white py-2 rounded-lg btn">➕ Ekle</button>
+            </form>
         </div>
-        <div class="space-y-4">
-            <div class="glass-card p-6"><h3 class="font-semibold mb-3">Yeni Varlık</h3>
-                <form id="add-port" class="space-y-2">
-                    <input id="p-name" placeholder="Ad" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white">
-                    <input id="p-type" placeholder="Tür" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white">
-                    <input id="p-cost" type="number" placeholder="Maliyet" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white">
-                    <input id="p-value" type="number" placeholder="Değer" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white">
-                    <button type="submit" class="w-full bg-green-500 text-white py-2 rounded-lg btn">➕ Ekle</button>
-                </form>
-            </div>
-            <div class="glass-card p-6"><h3 class="font-semibold mb-3">Varlıklar</h3><div class="space-y-2" id="port-list"></div></div>
-        </div>
+        <div class="glass-card p-6"><h3 class="font-semibold mb-3">Varlıklar</h3><div class="space-y-2" id="port-list"></div></div>
     </div>`;
     
-    document.getElementById('port-list').innerHTML = portfolio.map((p,i) => `
-        <div class="flex justify-between items-center bg-white/5 p-3 rounded-lg">
-            <span><span style="color:${p.color}">●</span> ${p.name} - ${fmt(p.value)}</span>
-            <button onclick="delPort(${p.id})" class="text-red-400"><i class="fas fa-trash"></i></button>
-        </div>
+    document.getElementById('port-list').innerHTML = portfolio.map(p => `
+        <div class="flex justify-between bg-white/5 p-3 rounded-lg"><span style="color:${p.color}">●</span> ${p.name} | ${fmt(p.value)} <span class="text-xs text-gray-400">(M:${fmt(p.cost)})</span><button onclick="delPort(${p.id})" class="text-red-400"><i class="fas fa-trash"></i></button></div>
     `).join('');
     
     document.getElementById('add-port').addEventListener('submit', function(e) {
         e.preventDefault();
-        const colors = ['#4ade80','#fbbf24','#60a5fa','#f7931a','#a78bfa','#34d399','#f472b6','#94a3b8'];
-        portfolio.push({ id: Date.now(), name: document.getElementById('p-name').value, type: document.getElementById('p-type').value, cost: +document.getElementById('p-cost').value, value: +document.getElementById('p-value').value, color: colors[Math.floor(Math.random()*colors.length)] });
+        const cols = ['#4ade80','#fbbf24','#60a5fa','#f7931a','#a78bfa','#34d399','#f472b6','#94a3b8'];
+        portfolio.push({ id:Date.now(), name:document.getElementById('p-name').value, type:document.getElementById('p-type').value, cost:+document.getElementById('p-cost').value, value:+document.getElementById('p-value').value, color:cols[Math.floor(Math.random()*cols.length)] });
         save(); renderPortfoy();
     });
     
     setTimeout(() => {
-        const ctx = document.getElementById('portfoyChart')?.getContext('2d');
-        if (ctx) new Chart(ctx, { type: 'doughnut', data: { labels: portfolio.map(p=>p.name), datasets: [{ data: portfolio.map(p=>p.value), backgroundColor: portfolio.map(p=>p.color), borderWidth: 0 }] }, options: { plugins: { legend: { labels: { color: '#fff' } } } } });
+        const c1 = document.getElementById('portCh1')?.getContext('2d');
+        if (c1) charts.p1 = new Chart(c1, { type:'doughnut', data:{ labels:portfolio.map(p=>p.name), datasets:[{ data:portfolio.map(p=>p.value), backgroundColor:portfolio.map(p=>p.color) }] }, options:{ plugins:{legend:{labels:{color:'#fff'}}} } });
+        
+        const c2 = document.getElementById('portCh2')?.getContext('2d');
+        if (c2) charts.p2 = new Chart(c2, { type:'bar', data:{ labels:portfolio.map(p=>p.name), datasets:[
+            { label:'Kar/Zarar', data:portfolio.map(p=>p.value-p.cost), backgroundColor:portfolio.map(p=>p.value>=p.cost?'#4ade80':'#f87171') }
+        ]}, options:{ plugins:{legend:{display:false}}, scales:{x:{ticks:{color:'#fff'}},y:{ticks:{color:'#fff'}}} } });
     }, 200);
 }
 window.delPort = function(id) { if(confirm('Sil?')){ portfolio = portfolio.filter(p=>p.id!==id); save(); renderPortfoy(); } };
 
+// ==================== FIRE HEDEFLERİ (DETAYLI HESAPLAMA) ====================
+function renderHedefler() {
+    const g = goals[0];
+    const years = g.targetAge - g.age;
+    const monthlyReturn = (g.annualReturn - g.inflation) / 100 / 12;
+    const months = years * 12;
+    
+    const fireTypes = [
+        { name: 'Lean FIRE', icon: '🔥', multiplier: 0.6, color: '#4ade80', colorClass: 'green' },
+        { name: 'Regular FIRE', icon: '⭐', multiplier: 0.8, color: '#fbbf24', colorClass: 'yellow' },
+        { name: 'Fat FIRE', icon: '💎', multiplier: 1.2, color: '#a78bfa', colorClass: 'purple' },
+        { name: 'Coast FIRE', icon: '🏖️', multiplier: 1.0, color: '#60a5fa', colorClass: 'blue' }
+    ];
+    
+    const fireResults = fireTypes.map(ft => {
+        const monthlyExpense = g.monthlyExpense * ft.multiplier;
+        const fireNumber = monthlyExpense * 12 * 25;
+        const progress = Math.min(100, (g.current / fireNumber * 100));
+        const futureValue = g.current * Math.pow(1+monthlyReturn, months) + g.monthlyContribution * ((Math.pow(1+monthlyReturn, months)-1)/monthlyReturn);
+        const yearsToFire = fireNumber > g.current ? Math.log(fireNumber / g.current) / Math.log(1 + monthlyReturn) / 12 : 0;
+        const monthlyNeeded = fireNumber > g.current ? (fireNumber - g.current * Math.pow(1+monthlyReturn, months)) / ((Math.pow(1+monthlyReturn, months)-1)/monthlyReturn) : 0;
+        const passiveIncomeNeeded = monthlyExpense;
+        
+        return { ...ft, monthlyExpense, fireNumber, progress, futureValue, yearsToFire, monthlyNeeded, passiveIncomeNeeded };
+    });
+    
+    document.getElementById('page-hedefler').innerHTML = `
+    <h2 class="text-3xl font-bold gold-text mb-6">🎯 FIRE Hedefleri & Hesaplama</h2>
+    
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+        ${fireResults.map(fr => `
+        <div class="glass-card p-5 hover:border-${fr.colorClass}-400/50 transition">
+            <div class="flex items-center gap-2 mb-3">
+                <span class="text-2xl">${fr.icon}</span>
+                <h3 class="font-bold text-${fr.colorClass}-400">${fr.name}</h3>
+            </div>
+            <div class="space-y-2">
+                <div class="w-full bg-white/10 rounded-full h-3 overflow-hidden">
+                    <div class="h-full rounded-full transition-all duration-700" style="width:${fr.progress.toFixed(1)}%; background:${fr.color}"></div>
+                </div>
+                <p class="text-xs text-gray-400">İlerleme: <span class="text-${fr.colorClass}-400 font-semibold">%${fr.progress.toFixed(1)}</span></p>
+                <div class="grid grid-cols-2 gap-2 text-xs mt-3">
+                    <div><span class="text-gray-500">Hedef:</span><p class="font-semibold">${fmt(fr.fireNumber)}</p></div>
+                    <div><span class="text-gray-500">Aylık Gider:</span><p>${fmt(fr.monthlyExpense)}</p></div>
+                    <div><span class="text-gray-500">FIRE Süresi:</span><p class="text-${fr.colorClass}-400">${fr.yearsToFire > 0 ? fr.yearsToFire.toFixed(1)+' yıl' : 'Ulaşıldı!'}</p></div>
+                    <div><span class="text-gray-500">Pasif Gelir:</span><p>${fmt(fr.passiveIncomeNeeded)}/ay</p></div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">Gerekli aylık katkı: <b class="text-yellow-300">${fmt(Math.max(0, fr.monthlyNeeded))}</b></p>
+            </div>
+        </div>
+        `).join('')}
+    </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div class="glass-card p-6">
+            <h3 class="font-semibold mb-4">📈 FIRE Projeksiyonu (Regular)</h3>
+            <canvas id="fireChart1"></canvas>
+        </div>
+        <div class="glass-card p-6">
+            <h3 class="font-semibold mb-4">⚙️ Parametreler</h3>
+            <form id="fire-params" class="space-y-3">
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="text-xs text-gray-400">Yaş</label><input id="f-age" type="number" value="${g.age}" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white mt-1"></div>
+                    <div><label class="text-xs text-gray-400">Hedef Yaş</label><input id="f-target" type="number" value="${g.targetAge}" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white mt-1"></div>
+                    <div><label class="text-xs text-gray-400">Mevcut Birikim</label><input id="f-current" type="number" value="${g.current}" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white mt-1"></div>
+                    <div><label class="text-xs text-gray-400">Aylık Gider</label><input id="f-expense" type="number" value="${g.monthlyExpense}" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white mt-1"></div>
+                    <div><label class="text-xs text-gray-400">Aylık Katkı</label><input id="f-contrib" type="number" value="${g.monthlyContribution}" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white mt-1"></div>
+                    <div><label class="text-xs text-gray-400">Getiri %</label><input id="f-return" type="number" value="${g.annualReturn}" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white mt-1"></div>
+                    <div><label class="text-xs text-gray-400">Enflasyon %</label><input id="f-inflation" type="number" value="${g.inflation}" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white mt-1"></div>
+                </div>
+                <button type="submit" class="w-full bg-yellow-500 text-white py-3 rounded-xl btn">Hesapla</button>
+            </form>
+        </div>
+    </div>`;
+    
+    // FIRE projeksiyon grafiği
+    setTimeout(() => {
+        const ctx = document.getElementById('fireChart1')?.getContext('2d');
+        if (ctx) {
+            const reg = fireResults.find(f=>f.name==='Regular FIRE');
+            const labels = [];
+            const data = [];
+            let bal = g.current;
+            for (let i = 0; i <= years; i++) {
+                labels.push((g.age + i) + ' yaş');
+                data.push(Math.round(bal));
+                bal = bal * (1+monthlyReturn) + g.monthlyContribution;
+            }
+            charts.fire1 = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        { label:'Birikim Projeksiyonu', data, borderColor:'#fbbf24', backgroundColor:'rgba(251,191,36,0.1)', fill:true, tension:0.3 },
+                        { label:'FIRE Hedefi', data:Array(years+1).fill(reg.fireNumber), borderColor:'#4ade80', borderDash:[5,5], fill:false }
+                    ]
+                },
+                options: { plugins:{legend:{labels:{color:'#fff'}}}, scales:{x:{ticks:{color:'#fff'}},y:{ticks:{color:'#fff'}}} }
+            });
+        }
+        
+        document.getElementById('fire-params').addEventListener('submit', function(e) {
+            e.preventDefault();
+            goals[0] = {
+                ...goals[0],
+                age: +document.getElementById('f-age').value,
+                targetAge: +document.getElementById('f-target').value,
+                current: +document.getElementById('f-current').value,
+                monthlyExpense: +document.getElementById('f-expense').value,
+                monthlyContribution: +document.getElementById('f-contrib').value,
+                annualReturn: +document.getElementById('f-return').value,
+                inflation: +document.getElementById('f-inflation').value
+            };
+            save();
+            renderHedefler();
+        });
+    }, 300);
+}
+
 // ==================== MARKET ====================
 function renderMarket() {
     document.getElementById('page-market').innerHTML = `
-    <h2 class="text-3xl font-bold gold-text mb-6">🛒 Market</h2>
+    <h2 class="text-3xl font-bold gold-text mb-6">🛒 Dijital Market</h2>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="glass-card p-6"><h3 class="font-semibold mb-3">Ürün Ekle</h3>
             <form id="add-prod" class="space-y-2">
@@ -389,16 +544,8 @@ function renderMarket() {
         </div>
         <div class="glass-card p-6"><h3 class="font-semibold mb-3">Ürünler</h3><div class="space-y-2" id="prod-list"></div></div>
     </div>`;
-    
-    document.getElementById('prod-list').innerHTML = marketProducts.map(p => `
-        <div class="flex justify-between bg-white/5 p-3 rounded-lg"><span>${p.icon||'📦'} ${p.name} - <b class="text-yellow-300">${p.price?fmt(p.price):'Ücretsiz'}</b></span><button onclick="delProd(${p.id})" class="text-red-400"><i class="fas fa-trash"></i></button></div>
-    `).join('');
-    
-    document.getElementById('add-prod').addEventListener('submit', function(e) {
-        e.preventDefault();
-        marketProducts.push({ id: Date.now(), name: document.getElementById('prod-name').value, price: +document.getElementById('prod-price').value, icon: '📦' });
-        save(); renderMarket();
-    });
+    document.getElementById('prod-list').innerHTML = marketProducts.map(p => `<div class="flex justify-between bg-white/5 p-3 rounded-lg"><span>${p.icon||'📦'} ${p.name} <b class="text-yellow-300">${p.price?fmt(p.price):'Ücretsiz'}</b></span><button onclick="delProd(${p.id})" class="text-red-400"><i class="fas fa-trash"></i></button></div>`).join('');
+    document.getElementById('add-prod').addEventListener('submit', function(e) { e.preventDefault(); marketProducts.push({ id:Date.now(), name:document.getElementById('prod-name').value, price:+document.getElementById('prod-price').value, icon:'📦' }); save(); renderMarket(); });
 }
 window.delProd = function(id) { if(confirm('Sil?')){ marketProducts = marketProducts.filter(p=>p.id!==id); save(); renderMarket(); } };
 
@@ -407,8 +554,8 @@ function renderKutuphane() {
     document.getElementById('page-kutuphane').innerHTML = `
     <h2 class="text-3xl font-bold gold-text mb-6">📚 Kütüphane</h2>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="glass-card p-6"><h3 class="font-semibold mb-3">İçerik Ekle</h3>
-            <form id="add-content" class="space-y-2">
+        <div class="glass-card p-6"><h3 class="font-semibold mb-3">Ekle</h3>
+            <form id="add-cont" class="space-y-2">
                 <select id="c-type" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white"><option value="video">🎥 Video</option><option value="makale">📄 Makale</option></select>
                 <input id="c-title" placeholder="Başlık" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white">
                 <input id="c-dur" placeholder="Süre" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white">
@@ -417,93 +564,32 @@ function renderKutuphane() {
         </div>
         <div class="glass-card p-6"><h3 class="font-semibold mb-3">İçerikler</h3><div class="space-y-2" id="cont-list"></div></div>
     </div>`;
-    
-    document.getElementById('cont-list').innerHTML = contentLibrary.map(c => `
-        <div class="flex justify-between bg-white/5 p-3 rounded-lg"><span>${c.type==='video'?'🎥':'📄'} ${c.title} (${c.duration})</span><button onclick="delCont(${c.id})" class="text-red-400"><i class="fas fa-trash"></i></button></div>
-    `).join('');
-    
-    document.getElementById('add-content').addEventListener('submit', function(e) {
-        e.preventDefault();
-        contentLibrary.push({ id: Date.now(), type: document.getElementById('c-type').value, title: document.getElementById('c-title').value, duration: document.getElementById('c-dur').value });
-        save(); renderKutuphane();
-    });
+    document.getElementById('cont-list').innerHTML = contentLibrary.map(c => `<div class="flex justify-between bg-white/5 p-3 rounded-lg"><span>${c.type==='video'?'🎥':'📄'} ${c.title} (${c.duration})</span><button onclick="delCont(${c.id})" class="text-red-400"><i class="fas fa-trash"></i></button></div>`).join('');
+    document.getElementById('add-cont').addEventListener('submit', function(e) { e.preventDefault(); contentLibrary.push({ id:Date.now(), type:document.getElementById('c-type').value, title:document.getElementById('c-title').value, duration:document.getElementById('c-dur').value }); save(); renderKutuphane(); });
 }
 window.delCont = function(id) { if(confirm('Sil?')){ contentLibrary = contentLibrary.filter(c=>c.id!==id); save(); renderKutuphane(); } };
 
 // ==================== ADMIN ====================
 function renderAdmin() {
-    if (!currentUser || currentUser.role !== 'admin') {
-        document.getElementById('page-admin').innerHTML = '<p class="text-center text-red-400 mt-20">⛔ Yetkisiz erişim!</p>';
-        return;
-    }
-    const allUsers = S.get('users');
-    document.getElementById('page-admin').innerHTML = `
-    <h2 class="text-3xl font-bold gold-text mb-6">🛡️ Admin Panel</h2>
-    <div class="glass-card p-6">
-        <h3 class="font-semibold mb-4">Kullanıcılar (${allUsers.length})</h3>
-        <table class="w-full text-sm"><thead><tr class="text-gray-400"><th>Ad</th><th>Email</th><th>Plan</th><th>Rol</th><th></th></tr></thead>
-        <tbody>${allUsers.map(u => `<tr class="border-b border-white/5"><td class="py-2">${u.name}</td><td>${u.email}</td><td>
-            <select onchange="chPlan('${u.email}',this.value)" class="bg-white/5 border border-white/10 rounded px-2 py-1 text-yellow-300 text-xs">
-                <option value="free" ${u.plan==='free'?'selected':''}>Free</option><option value="pro" ${u.plan==='pro'?'selected':''}>Pro</option><option value="premium" ${u.plan==='premium'?'selected':''}>Premium</option><option value="vip-elite" ${u.plan==='vip-elite'?'selected':''}>Vip Elite</option>
-            </select></td><td>${u.role}</td>
-            <td><button onclick="delUser('${u.email}')" class="text-red-400"><i class="fas fa-trash"></i></button></td></tr>`).join('')}</tbody></table>
-    </div>`;
+    if (!currentUser || currentUser.role !== 'admin') { document.getElementById('page-admin').innerHTML = '<p class="text-red-400 text-center mt-20">⛔ Yetkisiz!</p>'; return; }
+    const all = S.get('users');
+    document.getElementById('page-admin').innerHTML = `<h2 class="text-3xl font-bold gold-text mb-6">🛡️ Admin</h2><div class="glass-card p-6"><table class="w-full text-sm"><thead><tr class="text-gray-400"><th>Ad</th><th>Email</th><th>Plan</th><th></th></tr></thead><tbody>${all.map(u => `<tr class="border-b border-white/5"><td class="py-2">${u.name}</td><td>${u.email}</td><td><select onchange="chPlan('${u.email}',this.value)" class="bg-white/5 border border-white/10 rounded px-2 py-1 text-yellow-300 text-xs"><option value="free" ${u.plan==='free'?'selected':''}>Free</option><option value="pro" ${u.plan==='pro'?'selected':''}>Pro</option><option value="premium" ${u.plan==='premium'?'selected':''}>Premium</option><option value="vip-elite" ${u.plan==='vip-elite'?'selected':''}>Vip Elite</option></select></td><td><button onclick="delUser('${u.email}')" class="text-red-400"><i class="fas fa-trash"></i></button></td></tr>`).join('')}</tbody></table></div>`;
 }
-window.chPlan = function(email, plan) {
-    users = S.get('users');
-    const u = users.find(u=>u.email===email);
-    if(u) { u.plan = plan; S.set('users',users); if(currentUser.email===email){ currentUser.plan=plan; S.set('currentUser',currentUser); updateSidebar(); } }
-};
-window.delUser = function(email) {
-    if(email==='admin@ffos.com') return alert('Admin silinemez!');
-    if(confirm(email+' silinsin mi?')) {
-        users = S.get('users').filter(u=>u.email!==email);
-        S.set('users',users);
-        renderAdmin();
-    }
-};
+window.chPlan = function(email, plan) { users = S.get('users'); const u = users.find(u=>u.email===email); if(u) { u.plan=plan; S.set('users',users); if(currentUser.email===email){ currentUser.plan=plan; S.set('currentUser',currentUser); updateSidebar(); } } };
+window.delUser = function(email) { if(email==='admin@ffos.com') return alert('Admin silinemez!'); if(confirm(email+' sil?')){ users = S.get('users').filter(u=>u.email!==email); S.set('users',users); renderAdmin(); } };
 
 // ==================== DİĞER ====================
-function renderHedefler() {
-    const g = goals[0];
-    const types = [
-        { name:'Lean FIRE', icon:'🔥', expense:g.monthlyExpense*0.6, color:'green' },
-        { name:'Regular FIRE', icon:'⭐', expense:g.monthlyExpense*0.8, color:'yellow' },
-        { name:'Fat FIRE', icon:'💎', expense:g.monthlyExpense*1.2, color:'purple' },
-        { name:'Coast FIRE', icon:'🏖️', expense:g.monthlyExpense, color:'blue' }
-    ];
-    document.getElementById('page-hedefler').innerHTML = `<h2 class="text-3xl font-bold gold-text mb-6">🎯 FIRE Hedefleri</h2><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">${types.map(t => { const fn=t.expense*12*25; const p=Math.min(100,(g.current/fn*100)).toFixed(1); return `<div class="glass-card p-5"><span class="text-2xl">${t.icon}</span><h3 class="font-bold text-${t.color}-400 mt-2">${t.name}</h3><div class="w-full bg-white/10 rounded-full h-2 my-2"><div class="bg-${t.color}-400 h-2 rounded-full" style="width:${p}%"></div></div><p class="text-sm">Hedef: ${fmt(fn)}</p><p class="text-xs text-gray-400">%${p}</p></div>`; }).join('')}</div>`;
-}
-function renderAI() { document.getElementById('page-ai').innerHTML = `<h2 class="text-3xl font-bold gold-text mb-6">🤖 AI Danışman</h2><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div onclick="alert('BÜTÇE: Tasarruf oranınızı %25 yapın!')" class="glass-card p-6 cursor-pointer"><i class="fas fa-piggy-bank text-3xl text-green-400 mb-3"></i><h3 class="font-semibold">Bütçe Koçu</h3></div><div onclick="alert('YATIRIM: Portföy çeşitlendirin!')" class="glass-card p-6 cursor-pointer"><i class="fas fa-chart-line text-3xl text-blue-400 mb-3"></i><h3 class="font-semibold">Yatırım</h3></div><div onclick="alert('VERGİ: BES avantajı!')" class="glass-card p-6 cursor-pointer"><i class="fas fa-file-invoice text-3xl text-purple-400 mb-3"></i><h3 class="font-semibold">Vergi</h3></div><div onclick="alert('FIRE: 12 yıl kaldı!')" class="glass-card p-6 cursor-pointer"><i class="fas fa-fire text-3xl text-orange-400 mb-3"></i><h3 class="font-semibold">FIRE Mentor</h3></div></div>`; }
-function renderAbonelik() { document.getElementById('page-abonelik').innerHTML = `<h2 class="text-3xl font-bold gold-text mb-8 text-center">💎 Paketler</h2><div class="grid grid-cols-1 md:grid-cols-4 gap-6"><div class="glass-card p-6 text-center"><h3 class="text-xl font-bold">Free</h3><p class="text-2xl font-bold text-yellow-300 my-3">Ücretsiz</p><button onclick="upgrade('free')" class="w-full bg-yellow-500 text-white py-2 rounded-xl btn">Seç</button></div><div class="glass-card p-6 text-center ring-2 ring-yellow-400"><h3 class="text-xl font-bold">Pro</h3><p class="text-2xl font-bold text-yellow-300 my-3">₺149/ay</p><button onclick="upgrade('pro')" class="w-full bg-yellow-500 text-white py-2 rounded-xl btn">Yükselt</button></div><div class="glass-card p-6 text-center"><h3 class="text-xl font-bold">Premium</h3><p class="text-2xl font-bold text-yellow-300 my-3">₺249/ay</p><button onclick="upgrade('premium')" class="w-full bg-yellow-500 text-white py-2 rounded-xl btn">Yükselt</button></div><div class="glass-card p-6 text-center"><h3 class="text-xl font-bold">Vip Elite</h3><p class="text-2xl font-bold text-yellow-300 my-3">₺499/ay</p><button onclick="upgrade('vip-elite')" class="w-full bg-yellow-500 text-white py-2 rounded-xl btn">Yükselt</button></div></div>`; }
-window.upgrade = function(plan) {
-    if(!currentUser) return alert('Giriş yapın!');
-    currentUser.plan = plan;
-    S.set('currentUser',currentUser);
-    users = S.get('users');
-    const u = users.find(u=>u.email===currentUser.email);
-    if(u) { u.plan=plan; S.set('users',users); }
-    updateSidebar();
-    alert('✅ Plan: '+plan);
-};
-function renderRapor() { document.getElementById('page-rapor').innerHTML = `<div class="max-w-2xl mx-auto glass-card p-8 text-center"><h2 class="text-2xl font-bold gold-text mb-4">📄 PDF Rapor</h2><button onclick="pdf()" class="bg-red-500 hover:bg-red-600 text-white px-8 py-4 rounded-xl font-bold btn"><i class="fas fa-download mr-2"></i>İndir</button></div>`; }
-window.pdf = function() { try { const { jsPDF } = window.jspdf; const d = new jsPDF(); d.text('Finansal Danışmanlık Raporu',20,20); d.text('Tarih: '+new Date().toLocaleDateString('tr-TR'),20,30); d.save('rapor.pdf'); alert('✅ İndirildi!'); } catch(e) { alert('Hata!'); } };
+function renderAI() { document.getElementById('page-ai').innerHTML = `<h2 class="text-3xl font-bold gold-text mb-6">🤖 AI</h2><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div onclick="alert('BÜTÇE: Tasarruf %25!')" class="glass-card p-6 cursor-pointer"><i class="fas fa-piggy-bank text-3xl text-green-400 mb-3"></i><h3>Bütçe Koçu</h3></div><div onclick="alert('YATIRIM: Portföy çeşitlendirin!')" class="glass-card p-6 cursor-pointer"><i class="fas fa-chart-line text-3xl text-blue-400 mb-3"></i><h3>Yatırım</h3></div><div onclick="alert('VERGİ: BES avantajı!')" class="glass-card p-6 cursor-pointer"><i class="fas fa-file-invoice text-3xl text-purple-400 mb-3"></i><h3>Vergi</h3></div><div onclick="alert('FIRE: 12 yıl!')" class="glass-card p-6 cursor-pointer"><i class="fas fa-fire text-3xl text-orange-400 mb-3"></i><h3>FIRE Mentor</h3></div></div>`; }
+function renderAbonelik() { document.getElementById('page-abonelik').innerHTML = `<h2 class="text-3xl font-bold gold-text mb-8 text-center">💎 Paketler</h2><div class="grid grid-cols-1 md:grid-cols-4 gap-6"><div class="glass-card p-6 text-center"><h3>Free</h3><p class="text-2xl font-bold text-yellow-300 my-3">Ücretsiz</p><button onclick="upgrade('free')" class="w-full bg-yellow-500 text-white py-2 rounded-xl btn">Seç</button></div><div class="glass-card p-6 text-center ring-2 ring-yellow-400"><h3>Pro</h3><p class="text-2xl font-bold text-yellow-300 my-3">₺149/ay</p><button onclick="upgrade('pro')" class="w-full bg-yellow-500 text-white py-2 rounded-xl btn">Yükselt</button></div><div class="glass-card p-6 text-center"><h3>Premium</h3><p class="text-2xl font-bold text-yellow-300 my-3">₺249/ay</p><button onclick="upgrade('premium')" class="w-full bg-yellow-500 text-white py-2 rounded-xl btn">Yükselt</button></div><div class="glass-card p-6 text-center"><h3>Vip Elite</h3><p class="text-2xl font-bold text-yellow-300 my-3">₺499/ay</p><button onclick="upgrade('vip-elite')" class="w-full bg-yellow-500 text-white py-2 rounded-xl btn">Yükselt</button></div></div>`; }
+window.upgrade = function(plan) { if(!currentUser) return alert('Giriş yapın!'); currentUser.plan=plan; S.set('currentUser',currentUser); users=S.get('users'); const u=users.find(u=>u.email===currentUser.email); if(u){ u.plan=plan; S.set('users',users); } updateSidebar(); alert('✅ '+plan); };
+function renderRapor() { document.getElementById('page-rapor').innerHTML = `<div class="max-w-2xl mx-auto glass-card p-8 text-center"><h2 class="text-2xl font-bold gold-text mb-4">📄 PDF Rapor</h2><button onclick="pdf()" class="bg-red-500 text-white px-8 py-4 rounded-xl font-bold btn"><i class="fas fa-download mr-2"></i>İndir</button></div>`; }
+window.pdf = function() { try { const { jsPDF } = window.jspdf; const d = new jsPDF(); d.text('Finansal Danışmanlık Raporu',20,20); d.save('rapor.pdf'); alert('✅'); } catch(e) { alert('Hata'); } };
 
 // ==================== BOOT ====================
-function boot() {
-    updateSidebar();
-    if (currentUser) {
-        navigateTo('dashboard');
-    } else {
-        navigateTo('auth');
-    }
-}
-
-// Global
+function boot() { updateSidebar(); currentUser ? navigateTo('dashboard') : navigateTo('auth'); }
 window.navigateTo = navigateTo;
 window.toggleSidebar = toggleSidebar;
 window.logout = logout;
-
 document.addEventListener('DOMContentLoaded', boot);
 if (document.readyState !== 'loading') boot();
 </script>
