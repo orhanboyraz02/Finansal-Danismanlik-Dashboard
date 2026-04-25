@@ -27,7 +27,7 @@
         input:focus, select:focus, textarea:focus { border-color: rgba(255,215,0,0.5) !important; }
         .btn { transition: all 0.2s; }
         .btn:hover { transform: translateY(-1px); }
-        canvas { max-height: 320px; }
+        canvas { max-height: 350px; }
     </style>
 </head>
 <body class="text-gray-200 flex flex-col min-h-screen">
@@ -136,12 +136,22 @@ if (!S.get('goals')) S.set('goals', [{ target: 5000000, current: 895000, monthly
 if (!S.get('budget')) S.set('budget', { monthlyIncome: 56700, monthlyExpense: 35000, savings: 21700, debts: 50000 });
 if (!S.get('contentLibrary')) S.set('contentLibrary', [
     { id: 1, type: 'video', title: 'Bileşik Getiri Stratejileri', duration: '12:40' },
-    { id: 2, type: 'makale', title: 'Finansal Özgürlük Rehberi', duration: '8 dk' }
+    { id: 2, type: 'makale', title: 'Finansal Özgürlük Rehberi', duration: '8 dk' },
+    { id: 3, type: 'video', title: 'Pasif Gelir Akışları Oluşturma', duration: '18:25' },
+    { id: 4, type: 'makale', title: 'Vergi Avantajları ve BES', duration: '6 dk' },
+    { id: 5, type: 'video', title: 'Kripto Para Yatırım Temelleri', duration: '22:10' },
+    { id: 6, type: 'makale', title: 'Gayrimenkul Yatırım Stratejileri', duration: '10 dk' },
+    { id: 7, type: 'video', title: 'FIRE Hareketi Başlangıç Rehberi', duration: '15:30' }
 ]);
 if (!S.get('marketProducts')) S.set('marketProducts', [
     { id: 1, name: 'Bütçe Excel Şablonu', price: 49, icon: '📊' },
     { id: 2, name: 'FIRE E-Kitap', price: 79, icon: '📘' },
-    { id: 3, name: 'FIRE Hesaplayıcı', price: 0, icon: '🧮' }
+    { id: 3, name: 'FIRE Hesaplayıcı', price: 0, icon: '🧮' },
+    { id: 4, name: 'Yatırım 101 Video Kursu', price: 199, icon: '🎓' },
+    { id: 5, name: 'Portföy Analiz Aracı', price: 149, icon: '📈' },
+    { id: 6, name: 'Vergi Rehberi PDF', price: 29, icon: '📋' },
+    { id: 7, name: 'BES Karşılaştırma Tablosu', price: 0, icon: '🏦' },
+    { id: 8, name: 'Kripto Takip Paneli', price: 99, icon: '₿' }
 ]);
 
 // ==================== STATE ====================
@@ -212,7 +222,6 @@ function renderAuth() {
     });
 }
 
-// ==================== SIDEBAR ====================
 function updateSidebar() {
     const items = [
         { page: 'dashboard', icon: 'fa-th-large', label: 'Dashboard' },
@@ -259,7 +268,7 @@ function renderDashboard() {
         <div class="glass-card p-5"><h3 class="font-semibold mb-3">📊 Aylık Gelir/Gider</h3><canvas id="dashChart1"></canvas></div>
         <div class="glass-card p-5"><h3 class="font-semibold mb-3">🍩 Gelir/Gider Dağılımı</h3><canvas id="dashChart2"></canvas></div>
         <div class="glass-card p-5"><h3 class="font-semibold mb-3">📈 Portföy Dağılımı</h3><canvas id="dashChart3"></canvas></div>
-        <div class="glass-card p-5"><h3 class="font-semibold mb-3">🎯 FIRE İlerleme</h3><div class="flex items-center justify-center h-48"><div class="text-center"><p class="text-4xl font-bold text-yellow-400">%${Math.min(100,(goals[0].current/(goals[0].monthlyExpense*12*25)*100)).toFixed(1)}</p><p class="text-gray-400 mt-2">${fmt(goals[0].current)} / ${fmt(goals[0].monthlyExpense*12*25)}</p></div></div></div>
+        <div class="glass-card p-5"><h3 class="font-semibold mb-3">🎯 FIRE İlerleme</h3><canvas id="dashChart4"></canvas></div>
     </div>`;
     
     setTimeout(() => {
@@ -273,7 +282,26 @@ function renderDashboard() {
         if (c2) activeCharts.d2 = new Chart(c2, { type:'doughnut', data:{ labels:['Gelir','Gider'], datasets:[{ data:[ti,te], backgroundColor:['#4ade80','#f87171'], borderWidth:2, borderColor:'#0f1525' }] }, options:{ cutout:'65%', plugins:{legend:{labels:{color:'#fff',padding:15}}} } });
         
         const c3 = document.getElementById('dashChart3')?.getContext('2d');
-        if (c3) activeCharts.d3 = new Chart(c3, { type:'doughnut', data:{ labels:portfolio.map(p=>p.name), datasets:[{ data:portfolio.map(p=>p.value), backgroundColor:portfolio.map(p=>p.color), borderWidth:2, borderColor:'#0f1525' }] }, options:{ cutout:'65%', plugins:{legend:{labels:{color:'#fff',padding:10,font:{size:10}} }} } });
+        if (c3) activeCharts.d3 = new Chart(c3, { type:'doughnut', data:{ labels:portfolio.map(p=>p.name), datasets:[{ data:portfolio.map(p=>p.value), backgroundColor:portfolio.map(p=>p.color), borderWidth:2, borderColor:'#0f1525' }] }, options:{ cutout:'65%', plugins:{legend:{labels:{color:'#fff',padding:10,font:{size:9}} }} } });
+        
+        // FIRE Aylık İlerleme Grafiği
+        const g = goals[0];
+        const realReturn = (g.annualReturn - g.inflation) / 100 / 12;
+        const fireLabels = [];
+        const fireData = [];
+        const fireTarget = [];
+        let bal = g.current;
+        for (let i = 1; i <= 12; i++) {
+            fireLabels.push('Ay '+i);
+            bal = bal * (1 + realReturn) + g.monthlyContribution;
+            fireData.push(Math.round(bal));
+            fireTarget.push(g.target);
+        }
+        const c4 = document.getElementById('dashChart4')?.getContext('2d');
+        if (c4) activeCharts.d4 = new Chart(c4, { type:'line', data:{ labels:fireLabels, datasets:[
+            { label:'Birikim', data:fireData, borderColor:'#fbbf24', backgroundColor:'rgba(251,191,36,0.1)', fill:true, tension:0.3 },
+            { label:'Hedef', data:fireTarget, borderColor:'#4ade80', borderDash:[5,5], fill:false }
+        ]}, options:{ plugins:{legend:{labels:{color:'#fff'}}}, scales:{x:{ticks:{color:'#fff'}},y:{ticks:{color:'#fff',callback:v=>fmt(v)}}} } });
     }, 200);
 }
 
@@ -318,7 +346,7 @@ function renderFinans() {
 }
 window.delTx = function(id) { if(confirm('Silinsin mi?')){ transactions = transactions.filter(t=>t.id!==id); save(); renderFinans(); } };
 
-// ==================== PORTFÖY (YUVARLAK GRAFİK) ====================
+// ==================== PORTFÖY ====================
 function renderPortfoy() {
     const tv = portfolio.reduce((a,b)=>a+b.value,0);
     const tc = portfolio.reduce((a,b)=>a+b.cost,0);
@@ -337,7 +365,7 @@ function renderPortfoy() {
             <div class="w-full max-w-md"><canvas id="portCh1"></canvas></div>
         </div>
         <div class="glass-card p-5 flex flex-col items-center">
-            <h3 class="font-semibold mb-4 text-center">📊 Kar/Zarar Durumu</h3>
+            <h3 class="font-semibold mb-4 text-center">📊 Kar/Zarar Analizi</h3>
             <div class="w-full max-w-md"><canvas id="portCh2"></canvas></div>
         </div>
     </div>
@@ -361,10 +389,7 @@ function renderPortfoy() {
         <div class="flex items-center justify-between bg-white/5 p-3 rounded-lg hover:bg-white/10 transition">
             <div class="flex items-center gap-3">
                 <span class="w-3 h-3 rounded-full" style="background:${p.color}"></span>
-                <div>
-                    <p class="font-semibold text-sm">${p.name}</p>
-                    <p class="text-xs text-gray-400">${p.type} | Maliyet: ${fmt(p.cost)}</p>
-                </div>
+                <div><p class="font-semibold text-sm">${p.name}</p><p class="text-xs text-gray-400">${p.type} | Maliyet: ${fmt(p.cost)}</p></div>
             </div>
             <div class="flex items-center gap-3">
                 <span class="font-semibold text-sm">${fmt(p.value)}</span>
@@ -406,25 +431,8 @@ function renderPortfoy() {
                 cutout: '60%',
                 responsive: true,
                 plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            color: '#e2e8f0',
-                            padding: 15,
-                            font: { size: 11 },
-                            usePointStyle: true,
-                            pointStyleWidth: 10
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(ctx) {
-                                const total = ctx.dataset.data.reduce((a,b)=>a+b,0);
-                                const pct = ((ctx.raw/total)*100).toFixed(1);
-                                return `${ctx.label}: ${fmt(ctx.raw)} (%${pct})`;
-                            }
-                        }
-                    }
+                    legend: { position: 'bottom', labels: { color: '#e2e8f0', padding: 15, font: { size: 10 }, usePointStyle: true, pointStyleWidth: 10 } },
+                    tooltip: { callbacks: { label: function(ctx) { const total = ctx.dataset.data.reduce((a,b)=>a+b,0); return `${ctx.label}: ${fmt(ctx.raw)} (%${((ctx.raw/total)*100).toFixed(1)})`; } } }
                 }
             }
         });
@@ -434,21 +442,9 @@ function renderPortfoy() {
             type: 'bar',
             data: {
                 labels: portfolio.map(p => p.name),
-                datasets: [{
-                    label: 'Kar/Zarar',
-                    data: portfolio.map(p => p.value - p.cost),
-                    backgroundColor: portfolio.map(p => p.value >= p.cost ? 'rgba(74,222,128,0.8)' : 'rgba(248,113,113,0.8)'),
-                    borderRadius: 8,
-                    borderWidth: 0
-                }]
+                datasets: [{ label: 'Kar/Zarar', data: portfolio.map(p => p.value - p.cost), backgroundColor: portfolio.map(p => p.value >= p.cost ? 'rgba(74,222,128,0.8)' : 'rgba(248,113,113,0.8)'), borderRadius: 8, borderWidth: 0 }]
             },
-            options: {
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { ticks: { color: '#94a3b8', maxRotation: 45 }, grid: { color: 'rgba(255,255,255,0.05)' } },
-                    y: { ticks: { color: '#94a3b8', callback: v => fmt(v) }, grid: { color: 'rgba(255,255,255,0.05)' } }
-                }
-            }
+            options: { plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#94a3b8', maxRotation: 45 }, grid: { color: 'rgba(255,255,255,0.05)' } }, y: { ticks: { color: '#94a3b8', callback: v => fmt(v) }, grid: { color: 'rgba(255,255,255,0.05)' } } } }
         });
     }, 300);
 }
@@ -472,11 +468,19 @@ function renderHedefler() {
         const me = g.monthlyExpense * ft.mult;
         const fn = me * 12 * 25;
         const prog = Math.min(100, (g.current/fn*100));
-        const fv = g.current * Math.pow(1+realReturn, months) + g.monthlyContribution * ((Math.pow(1+realReturn, months)-1)/realReturn);
         const ytf = fn > g.current ? (Math.log(fn/g.current) / Math.log(1+realReturn)) / 12 : 0;
         const needed = fn > g.current ? (fn - g.current * Math.pow(1+realReturn, months)) / ((Math.pow(1+realReturn, months)-1)/realReturn) : 0;
-        return { ...ft, me, fn, prog, fv, ytf, needed };
+        return { ...ft, me, fn, prog, ytf, needed };
     });
+    
+    // Aylık FIRE projeksiyonu
+    const monthlyLabels = [], monthlyData = [];
+    let bal = g.current;
+    for (let i = 1; i <= 12; i++) {
+        monthlyLabels.push('Ay '+i);
+        bal = bal * (1 + realReturn) + g.monthlyContribution;
+        monthlyData.push(Math.round(bal));
+    }
     
     document.getElementById('page-hedefler').innerHTML = `
     <h2 class="text-3xl font-bold gold-text mb-6">🎯 FIRE Hedefleri & Sonuçlar</h2>
@@ -484,55 +488,67 @@ function renderHedefler() {
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
         ${results.map(r => `
         <div class="glass-card p-5 ${r.border} border-2 hover:scale-105 transition">
-            <div class="flex items-center gap-2 mb-3"><span class="text-3xl">${r.icon}</span><div><h3 class="font-bold text-lg" style="color:${r.color}">${r.name}</h3><p class="text-xs text-gray-400">${r.mult*100}% yaşam standardı</p></div></div>
-            <div class="w-full bg-white/10 rounded-full h-3 mb-2 overflow-hidden"><div class="h-full rounded-full transition-all" style="width:${r.prog.toFixed(1)}%; background:${r.color}"></div></div>
+            <div class="flex items-center gap-2 mb-3"><span class="text-3xl">${r.icon}</span><div><h3 class="font-bold text-lg" style="color:${r.color}">${r.name}</h3><p class="text-xs text-gray-400">${r.mult*100}% yaşam</p></div></div>
+            <div class="w-full bg-white/10 rounded-full h-3 mb-2 overflow-hidden"><div class="h-full rounded-full" style="width:${r.prog.toFixed(1)}%; background:${r.color}"></div></div>
             <p class="text-xs mb-3"><span class="text-gray-400">İlerleme:</span> <span class="font-bold" style="color:${r.color}">%${r.prog.toFixed(1)}</span></p>
-            <div class="space-y-2 text-sm">
+            <div class="space-y-1 text-sm">
                 <div class="flex justify-between"><span class="text-gray-400">Hedef:</span><span class="font-semibold">${fmt(r.fn)}</span></div>
                 <div class="flex justify-between"><span class="text-gray-400">Aylık Gider:</span><span>${fmt(r.me)}</span></div>
                 <div class="flex justify-between"><span class="text-gray-400">FIRE Süresi:</span><span class="font-bold" style="color:${r.color}">${r.ytf > 0 ? r.ytf.toFixed(1)+' yıl' : '🎉 Ulaşıldı!'}</span></div>
-                <div class="flex justify-between"><span class="text-gray-400">Pasif Gelir:</span><span>${fmt(r.me)}/ay</span></div>
-                <div class="flex justify-between border-t border-white/10 pt-2"><span class="text-gray-400">Gerekli Katkı:</span><span class="font-bold text-yellow-300">${fmt(Math.max(0,r.needed))}/ay</span></div>
+                <div class="flex justify-between border-t border-white/10 pt-1"><span class="text-gray-400">Gerekli Katkı:</span><span class="font-bold text-yellow-300">${fmt(Math.max(0,r.needed))}/ay</span></div>
             </div>
         </div>
         `).join('')}
     </div>
     
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="glass-card p-6"><h3 class="font-semibold mb-4">📈 FIRE Projeksiyonu</h3><canvas id="fireChart"></canvas></div>
-        <div class="glass-card p-6"><h3 class="font-semibold mb-4">⚙️ Parametreleri Güncelle</h3>
-            <form id="fire-form" class="space-y-3">
-                <div class="grid grid-cols-2 gap-3">
-                    <div><label class="text-xs text-gray-400">Yaşınız</label><input id="f-age" type="number" value="${g.age}" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white mt-1"></div>
-                    <div><label class="text-xs text-gray-400">Hedef Yaş</label><input id="f-target" type="number" value="${g.targetAge}" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white mt-1"></div>
-                    <div><label class="text-xs text-gray-400">Mevcut Birikim</label><input id="f-current" type="number" value="${g.current}" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white mt-1"></div>
-                    <div><label class="text-xs text-gray-400">Aylık Gider</label><input id="f-expense" type="number" value="${g.monthlyExpense}" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white mt-1"></div>
-                    <div><label class="text-xs text-gray-400">Aylık Katkı</label><input id="f-contrib" type="number" value="${g.monthlyContribution}" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white mt-1"></div>
-                    <div><label class="text-xs text-gray-400">Getiri %</label><input id="f-return" type="number" value="${g.annualReturn}" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white mt-1"></div>
-                </div>
-                <button type="submit" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-3 rounded-xl btn font-medium">🔄 Hesapla</button>
-            </form>
-        </div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div class="glass-card p-6"><h3 class="font-semibold mb-4">📈 12 Aylık FIRE İlerleme Projeksiyonu</h3><canvas id="fireMonthlyChart"></canvas></div>
+        <div class="glass-card p-6"><h3 class="font-semibold mb-4">📊 Uzun Vadeli FIRE Projeksiyonu</h3><canvas id="fireLongChart"></canvas></div>
+    </div>
+    
+    <div class="glass-card p-6"><h3 class="font-semibold mb-4">⚙️ Parametreleri Güncelle</h3>
+        <form id="fire-form" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+            <div><label class="text-xs text-gray-400">Yaş</label><input id="f-age" type="number" value="${g.age}" class="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-2 text-white mt-1"></div>
+            <div><label class="text-xs text-gray-400">Hedef Yaş</label><input id="f-target" type="number" value="${g.targetAge}" class="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-2 text-white mt-1"></div>
+            <div><label class="text-xs text-gray-400">Birikim</label><input id="f-current" type="number" value="${g.current}" class="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-2 text-white mt-1"></div>
+            <div><label class="text-xs text-gray-400">Ay. Gider</label><input id="f-expense" type="number" value="${g.monthlyExpense}" class="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-2 text-white mt-1"></div>
+            <div><label class="text-xs text-gray-400">Ay. Katkı</label><input id="f-contrib" type="number" value="${g.monthlyContribution}" class="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-2 text-white mt-1"></div>
+            <div><label class="text-xs text-gray-400">Getiri %</label><input id="f-return" type="number" value="${g.annualReturn}" class="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-2 text-white mt-1"></div>
+            <div class="flex items-end"><button type="submit" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded-lg btn font-medium">🔄 Hesapla</button></div>
+        </form>
     </div>`;
     
     setTimeout(() => {
-        const ctx = document.getElementById('fireChart')?.getContext('2d');
-        if (ctx) {
-            const labels = [], data = [];
-            let bal = g.current;
-            for (let i=0; i<=years; i++) {
-                labels.push((g.age+i)+' yaş');
-                data.push(Math.round(bal));
-                bal = bal*(1+realReturn) + g.monthlyContribution;
+        // Aylık FIRE ilerleme grafiği
+        const mc = document.getElementById('fireMonthlyChart')?.getContext('2d');
+        if (mc) activeCharts.fm = new Chart(mc, {
+            type: 'bar',
+            data: {
+                labels: monthlyLabels,
+                datasets: [{ label: 'Aylık Birikim Artışı', data: monthlyData.map((v,i) => v - (i>0?monthlyData[i-1]:g.current)), backgroundColor: 'rgba(251,191,36,0.7)', borderRadius: 6 }]
+            },
+            options: { plugins: { legend: { labels: { color: '#fff' } } }, scales: { x: { ticks: { color: '#fff' } }, y: { ticks: { color: '#fff', callback: v => fmt(v) } } } }
+        });
+        
+        // Uzun vadeli projeksiyon
+        const lc = document.getElementById('fireLongChart')?.getContext('2d');
+        if (lc) {
+            const longLabels = [], longData = [];
+            let bal2 = g.current;
+            for (let i = 0; i <= years; i++) {
+                longLabels.push((g.age+i)+' yaş');
+                longData.push(Math.round(bal2));
+                bal2 = bal2 * (1 + realReturn) + g.monthlyContribution;
             }
             const reg = results.find(r=>r.name==='Regular FIRE');
-            activeCharts.fire = new Chart(ctx, {
-                type:'line', data:{ labels, datasets:[
-                    { label:'Birikim', data, borderColor:'#fbbf24', backgroundColor:'rgba(251,191,36,0.1)', fill:true, tension:0.3 },
-                    { label:'FIRE Hedefi', data:Array(years+1).fill(reg.fn), borderColor:'#4ade80', borderDash:[5,5], fill:false }
-                ]}, options:{ plugins:{legend:{labels:{color:'#fff'}}}, scales:{x:{ticks:{color:'#fff'}},y:{ticks:{color:'#fff'}}} }
+            activeCharts.fl = new Chart(lc, {
+                type: 'line', data: { labels: longLabels, datasets: [
+                    { label: 'Birikim Projeksiyonu', data: longData, borderColor: '#fbbf24', backgroundColor: 'rgba(251,191,36,0.1)', fill: true, tension: 0.3 },
+                    { label: 'FIRE Hedefi', data: Array(years+1).fill(reg.fn), borderColor: '#4ade80', borderDash: [5,5], fill: false }
+                ]}, options: { plugins: { legend: { labels: { color: '#fff' } } }, scales: { x: { ticks: { color: '#fff' } }, y: { ticks: { color: '#fff', callback: v => fmt(v) } } } }
             });
         }
+        
         document.getElementById('fire-form').addEventListener('submit', function(e) {
             e.preventDefault();
             goals[0] = { ...goals[0], age:+document.getElementById('f-age').value, targetAge:+document.getElementById('f-target').value, current:+document.getElementById('f-current').value, monthlyExpense:+document.getElementById('f-expense').value, monthlyContribution:+document.getElementById('f-contrib').value, annualReturn:+document.getElementById('f-return').value };
@@ -541,34 +557,101 @@ function renderHedefler() {
     }, 300);
 }
 
-// ==================== DİĞER SAYFALAR ====================
+// ==================== MARKET (8 ÜRÜN) ====================
 function renderMarket() {
-    document.getElementById('page-market').innerHTML = `<h2 class="text-3xl font-bold gold-text mb-6">🛒 Dijital Market</h2><div class="grid grid-cols-1 lg:grid-cols-2 gap-6"><div class="glass-card p-6"><h3 class="font-semibold mb-3">Ürün Ekle</h3><form id="add-prod" class="space-y-2"><input id="prod-name" placeholder="Ürün Adı" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white"><input id="prod-price" type="number" placeholder="Fiyat (0=Ücretsiz)" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white"><button type="submit" class="w-full bg-green-500 text-white py-2 rounded-lg btn">➕ Ekle</button></form></div><div class="glass-card p-6"><h3 class="font-semibold mb-3">Ürünler</h3><div class="space-y-2" id="prod-list"></div></div></div>`;
-    document.getElementById('prod-list').innerHTML = marketProducts.map(p => `<div class="flex justify-between bg-white/5 p-3 rounded-lg"><span>${p.icon||'📦'} ${p.name} <b class="text-yellow-300">${p.price?fmt(p.price):'Ücretsiz'}</b></span><button onclick="delProd(${p.id})" class="text-red-400"><i class="fas fa-trash"></i></button></div>`).join('');
-    document.getElementById('add-prod').addEventListener('submit', function(e) { e.preventDefault(); marketProducts.push({ id:Date.now(), name:document.getElementById('prod-name').value, price:+document.getElementById('prod-price').value, icon:'📦' }); save(); renderMarket(); });
+    document.getElementById('page-market').innerHTML = `
+    <h2 class="text-3xl font-bold gold-text mb-6">🛒 Dijital Market (${marketProducts.length} Ürün)</h2>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="glass-card p-6"><h3 class="font-semibold mb-3">➕ Yeni Ürün Ekle</h3>
+            <form id="add-prod" class="space-y-2">
+                <input id="prod-name" placeholder="Ürün Adı" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white">
+                <input id="prod-price" type="number" placeholder="Fiyat (0=Ücretsiz)" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white">
+                <input id="prod-icon" placeholder="İkon (emoji)" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white">
+                <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg btn">➕ Ekle</button>
+            </form>
+        </div>
+        <div class="glass-card p-6"><h3 class="font-semibold mb-3">📦 Ürün Listesi</h3><div class="space-y-2 max-h-96 overflow-y-auto" id="prod-list"></div></div>
+    </div>`;
+    
+    document.getElementById('prod-list').innerHTML = marketProducts.map(p => `
+        <div class="flex items-center justify-between bg-white/5 p-3 rounded-lg hover:bg-white/10 transition">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">${p.icon||'📦'}</span>
+                <div><p class="font-semibold text-sm">${p.name}</p><p class="text-xs text-gray-400">${p.price===0?'Ücretsiz':fmt(p.price)}</p></div>
+            </div>
+            <button onclick="delProd(${p.id})" class="text-red-400 hover:text-red-300"><i class="fas fa-trash"></i></button>
+        </div>
+    `).join('');
+    
+    document.getElementById('add-prod').addEventListener('submit', function(e) {
+        e.preventDefault();
+        marketProducts.push({
+            id: Date.now(),
+            name: document.getElementById('prod-name').value,
+            price: +document.getElementById('prod-price').value,
+            icon: document.getElementById('prod-icon').value || '📦'
+        });
+        save(); renderMarket();
+    });
 }
-window.delProd = function(id) { if(confirm('Sil?')){ marketProducts = marketProducts.filter(p=>p.id!==id); save(); renderMarket(); } };
+window.delProd = function(id) { if(confirm('Ürün silinsin mi?')){ marketProducts = marketProducts.filter(p=>p.id!==id); save(); renderMarket(); } };
 
+// ==================== KÜTÜPHANE (7 İÇERİK) ====================
 function renderKutuphane() {
-    document.getElementById('page-kutuphane').innerHTML = `<h2 class="text-3xl font-bold gold-text mb-6">📚 Kütüphane</h2><div class="grid grid-cols-1 lg:grid-cols-2 gap-6"><div class="glass-card p-6"><h3 class="font-semibold mb-3">İçerik Ekle</h3><form id="add-cont" class="space-y-2"><select id="c-type" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white"><option value="video">🎥 Video</option><option value="makale">📄 Makale</option></select><input id="c-title" placeholder="Başlık" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white"><input id="c-dur" placeholder="Süre (örn: 12:40)" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white"><button type="submit" class="w-full bg-green-500 text-white py-2 rounded-lg btn">➕ Ekle</button></form></div><div class="glass-card p-6"><h3 class="font-semibold mb-3">İçerikler</h3><div class="space-y-2" id="cont-list"></div></div></div>`;
-    document.getElementById('cont-list').innerHTML = contentLibrary.map(c => `<div class="flex justify-between bg-white/5 p-3 rounded-lg"><span>${c.type==='video'?'🎥':'📄'} ${c.title} (${c.duration})</span><button onclick="delCont(${c.id})" class="text-red-400"><i class="fas fa-trash"></i></button></div>`).join('');
-    document.getElementById('add-cont').addEventListener('submit', function(e) { e.preventDefault(); contentLibrary.push({ id:Date.now(), type:document.getElementById('c-type').value, title:document.getElementById('c-title').value, duration:document.getElementById('c-dur').value }); save(); renderKutuphane(); });
+    document.getElementById('page-kutuphane').innerHTML = `
+    <h2 class="text-3xl font-bold gold-text mb-6">📚 İçerik Kütüphanesi (${contentLibrary.length} İçerik)</h2>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="glass-card p-6"><h3 class="font-semibold mb-3">➕ Yeni İçerik Ekle</h3>
+            <form id="add-cont" class="space-y-2">
+                <select id="c-type" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white">
+                    <option value="video">🎥 Video</option><option value="makale">📄 Makale</option>
+                    <option value="egitim">🎓 Eğitim</option><option value="podcast">🎙️ Podcast</option>
+                </select>
+                <input id="c-title" placeholder="Başlık" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white">
+                <input id="c-dur" placeholder="Süre (örn: 12:40 veya 8 dk)" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white">
+                <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg btn">➕ Ekle</button>
+            </form>
+        </div>
+        <div class="glass-card p-6"><h3 class="font-semibold mb-3">📋 İçerik Listesi</h3><div class="space-y-2 max-h-96 overflow-y-auto" id="cont-list"></div></div>
+    </div>`;
+    
+    const typeIcons = { video:'🎥', makale:'📄', egitim:'🎓', podcast:'🎙️' };
+    document.getElementById('cont-list').innerHTML = contentLibrary.map(c => `
+        <div class="flex items-center justify-between bg-white/5 p-3 rounded-lg hover:bg-white/10 transition">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">${typeIcons[c.type]||'📄'}</span>
+                <div><p class="font-semibold text-sm">${c.title}</p><p class="text-xs text-gray-400">${c.duration} | ${c.type}</p></div>
+            </div>
+            <button onclick="delCont(${c.id})" class="text-red-400 hover:text-red-300"><i class="fas fa-trash"></i></button>
+        </div>
+    `).join('');
+    
+    document.getElementById('add-cont').addEventListener('submit', function(e) {
+        e.preventDefault();
+        contentLibrary.push({
+            id: Date.now(),
+            type: document.getElementById('c-type').value,
+            title: document.getElementById('c-title').value,
+            duration: document.getElementById('c-dur').value
+        });
+        save(); renderKutuphane();
+    });
 }
-window.delCont = function(id) { if(confirm('Sil?')){ contentLibrary = contentLibrary.filter(c=>c.id!==id); save(); renderKutuphane(); } };
+window.delCont = function(id) { if(confirm('İçerik silinsin mi?')){ contentLibrary = contentLibrary.filter(c=>c.id!==id); save(); renderKutuphane(); } };
 
+// ==================== DİĞER SAYFALAR ====================
 function renderAdmin() {
-    if (!currentUser || currentUser.role !== 'admin') { document.getElementById('page-admin').innerHTML = '<p class="text-red-400 text-center mt-20">⛔ Yetkisiz erişim!</p>'; return; }
+    if (!currentUser || currentUser.role !== 'admin') { document.getElementById('page-admin').innerHTML = '<p class="text-red-400 text-center mt-20">⛔ Yetkisiz!</p>'; return; }
     const all = S.get('users');
     document.getElementById('page-admin').innerHTML = `<h2 class="text-3xl font-bold gold-text mb-6">🛡️ Admin Panel</h2><div class="glass-card p-6"><table class="w-full text-sm"><thead><tr class="text-gray-400"><th>Ad</th><th>Email</th><th>Plan</th><th></th></tr></thead><tbody>${all.map(u => `<tr class="border-b border-white/5"><td class="py-2">${u.name}</td><td>${u.email}</td><td><select onchange="chPlan('${u.email}',this.value)" class="bg-white/5 border border-white/10 rounded px-2 py-1 text-yellow-300 text-xs"><option value="free" ${u.plan==='free'?'selected':''}>Free</option><option value="pro" ${u.plan==='pro'?'selected':''}>Pro</option><option value="premium" ${u.plan==='premium'?'selected':''}>Premium</option><option value="vip-elite" ${u.plan==='vip-elite'?'selected':''}>Vip Elite</option></select></td><td><button onclick="delUser('${u.email}')" class="text-red-400"><i class="fas fa-trash"></i></button></td></tr>`).join('')}</tbody></table></div>`;
 }
 window.chPlan = function(email, plan) { users = S.get('users'); const u = users.find(u=>u.email===email); if(u) { u.plan=plan; S.set('users',users); if(currentUser.email===email){ currentUser.plan=plan; S.set('currentUser',currentUser); updateSidebar(); } } };
 window.delUser = function(email) { if(email==='admin@ffos.com') return alert('Admin silinemez!'); if(confirm(email+' silinsin mi?')){ users = S.get('users').filter(u=>u.email!==email); S.set('users',users); renderAdmin(); } };
-
-function renderAI() { document.getElementById('page-ai').innerHTML = `<h2 class="text-3xl font-bold gold-text mb-6">🤖 AI Danışman</h2><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div onclick="alert('BÜTÇE KOÇU: Tasarruf oranınızı %25 yapın!')" class="glass-card p-6 cursor-pointer"><i class="fas fa-piggy-bank text-3xl text-green-400 mb-3"></i><h3>Bütçe Koçu</h3></div><div onclick="alert('YATIRIM: Portföy çeşitlendirin!')" class="glass-card p-6 cursor-pointer"><i class="fas fa-chart-line text-3xl text-blue-400 mb-3"></i><h3>Yatırım Danışmanı</h3></div><div onclick="alert('VERGİ: BES avantajı!')" class="glass-card p-6 cursor-pointer"><i class="fas fa-file-invoice text-3xl text-purple-400 mb-3"></i><h3>Vergi Uzmanı</h3></div><div onclick="alert('FIRE: 12 yıl kaldı!')" class="glass-card p-6 cursor-pointer"><i class="fas fa-fire text-3xl text-orange-400 mb-3"></i><h3>FIRE Mentor</h3></div></div>`; }
-function renderAbonelik() { document.getElementById('page-abonelik').innerHTML = `<h2 class="text-3xl font-bold gold-text mb-8 text-center">💎 Abonelik Paketleri</h2><div class="grid grid-cols-1 md:grid-cols-4 gap-6"><div class="glass-card p-6 text-center"><h3>Free</h3><p class="text-2xl font-bold text-yellow-300 my-3">Ücretsiz</p><button onclick="upgrade('free')" class="w-full bg-yellow-500 text-white py-2 rounded-xl btn">Seç</button></div><div class="glass-card p-6 text-center ring-2 ring-yellow-400"><h3>Pro</h3><p class="text-2xl font-bold text-yellow-300 my-3">₺149/ay</p><button onclick="upgrade('pro')" class="w-full bg-yellow-500 text-white py-2 rounded-xl btn">Yükselt</button></div><div class="glass-card p-6 text-center"><h3>Premium</h3><p class="text-2xl font-bold text-yellow-300 my-3">₺249/ay</p><button onclick="upgrade('premium')" class="w-full bg-yellow-500 text-white py-2 rounded-xl btn">Yükselt</button></div><div class="glass-card p-6 text-center"><h3>Vip Elite</h3><p class="text-2xl font-bold text-yellow-300 my-3">₺499/ay</p><button onclick="upgrade('vip-elite')" class="w-full bg-yellow-500 text-white py-2 rounded-xl btn">Yükselt</button></div></div>`; }
-window.upgrade = function(plan) { if(!currentUser) return alert('Giriş yapın!'); currentUser.plan=plan; S.set('currentUser',currentUser); users=S.get('users'); const u=users.find(u=>u.email===currentUser.email); if(u){ u.plan=plan; S.set('users',users); } updateSidebar(); alert('✅ Plan: '+plan); };
+function renderAI() { document.getElementById('page-ai').innerHTML = `<h2 class="text-3xl font-bold gold-text mb-6">🤖 AI Danışman</h2><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div onclick="alert('BÜTÇE KOÇU: Tasarruf %25!')" class="glass-card p-6 cursor-pointer"><i class="fas fa-piggy-bank text-3xl text-green-400 mb-3"></i><h3>Bütçe Koçu</h3></div><div onclick="alert('YATIRIM: Portföy çeşitlendirin!')" class="glass-card p-6 cursor-pointer"><i class="fas fa-chart-line text-3xl text-blue-400 mb-3"></i><h3>Yatırım</h3></div><div onclick="alert('VERGİ: BES avantajı!')" class="glass-card p-6 cursor-pointer"><i class="fas fa-file-invoice text-3xl text-purple-400 mb-3"></i><h3>Vergi</h3></div><div onclick="alert('FIRE: 12 yıl!')" class="glass-card p-6 cursor-pointer"><i class="fas fa-fire text-3xl text-orange-400 mb-3"></i><h3>FIRE Mentor</h3></div></div>`; }
+function renderAbonelik() { document.getElementById('page-abonelik').innerHTML = `<h2 class="text-3xl font-bold gold-text mb-8 text-center">💎 Paketler</h2><div class="grid grid-cols-1 md:grid-cols-4 gap-6"><div class="glass-card p-6 text-center"><h3>Free</h3><p class="text-2xl font-bold text-yellow-300 my-3">Ücretsiz</p><button onclick="upgrade('free')" class="w-full bg-yellow-500 text-white py-2 rounded-xl btn">Seç</button></div><div class="glass-card p-6 text-center ring-2 ring-yellow-400"><h3>Pro</h3><p class="text-2xl font-bold text-yellow-300 my-3">₺149/ay</p><button onclick="upgrade('pro')" class="w-full bg-yellow-500 text-white py-2 rounded-xl btn">Yükselt</button></div><div class="glass-card p-6 text-center"><h3>Premium</h3><p class="text-2xl font-bold text-yellow-300 my-3">₺249/ay</p><button onclick="upgrade('premium')" class="w-full bg-yellow-500 text-white py-2 rounded-xl btn">Yükselt</button></div><div class="glass-card p-6 text-center"><h3>Vip Elite</h3><p class="text-2xl font-bold text-yellow-300 my-3">₺499/ay</p><button onclick="upgrade('vip-elite')" class="w-full bg-yellow-500 text-white py-2 rounded-xl btn">Yükselt</button></div></div>`; }
+window.upgrade = function(plan) { if(!currentUser) return alert('Giriş!'); currentUser.plan=plan; S.set('currentUser',currentUser); users=S.get('users'); const u=users.find(u=>u.email===currentUser.email); if(u){ u.plan=plan; S.set('users',users); } updateSidebar(); alert('✅ '+plan); };
 function renderRapor() { document.getElementById('page-rapor').innerHTML = `<div class="max-w-2xl mx-auto glass-card p-8 text-center"><h2 class="text-2xl font-bold gold-text mb-4">📄 PDF Rapor</h2><button onclick="pdf()" class="bg-red-500 text-white px-8 py-4 rounded-xl font-bold btn"><i class="fas fa-download mr-2"></i>İndir</button></div>`; }
-window.pdf = function() { try { const { jsPDF } = window.jspdf; const d = new jsPDF(); d.text('Finansal Danışmanlık Raporu',20,20); d.save('rapor.pdf'); alert('✅ İndirildi!'); } catch(e) { alert('Hata!'); } };
+window.pdf = function() { try { const { jsPDF } = window.jspdf; const d = new jsPDF(); d.text('Finansal Danışmanlık Raporu',20,20); d.text('Tarih: '+new Date().toLocaleDateString('tr-TR'),20,30); d.text('Portföy: '+fmt(portfolio.reduce((a,b)=>a+b.value,0)),20,40); d.save('Finansal_Rapor.pdf'); alert('✅ İndirildi!'); } catch(e) { alert('Hata!'); } };
 
 // ==================== BOOT ====================
 function boot() { updateSidebar(); currentUser ? navigateTo('dashboard') : navigateTo('auth'); }
