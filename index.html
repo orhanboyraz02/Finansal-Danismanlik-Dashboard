@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>Finansal Danışmanlık Platformu | FIRE OS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #0f1525;
+            --gold: #ffd700;
+            --gold-dark: #b8960f;
+        }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0a0e1a 0%, #0f1525 50%, #0a0e1a 100%);
+            margin: 0;
+            min-height: 100vh;
+        }
+        .glass-card {
+            background: rgba(15, 21, 37, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 215, 0, 0.1);
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 40px -12px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.02);
+        }
+        .glass-panel {
+            background: rgba(12, 17, 29, 0.9);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 215, 0, 0.08);
+            border-radius: 1.8rem;
+            box-shadow: 0 25px 50px -15px rgba(0,0,0,0.9);
+        }
+        .gold-text {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FFD700 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 700;
+        }
+        .gold-border {
+            border-color: rgba(255, 215, 0, 0.3);
+        }
+        .nav-item {
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+            border-radius: 0 12px 12px 0;
+        }
+        .nav-item:hover {
+            background: rgba(255, 215, 0, 0.05);
+            border-left: 3px solid #FFD700;
+        }
+        .nav-item.active {
+            background: rgba(255, 215, 0, 0.1);
+            border-left: 3px solid #FFD700;
+            color: #FFD700;
+        }
+        .progress-bar {
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .page {
+            display: none;
+        }
+        .page.active-page {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .mobile-sidebar {
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+        .mobile-sidebar.open {
+            transform: translateX(0);
+        }
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0e1a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 10px;
+        }
+        .fire-card {
+            transition: all 0.3s ease;
+        }
+        .fire-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px -12px rgba(255, 215, 0, 0.15);
+        }
+        input, select, textarea {
+            outline: none;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: rgba(255, 215, 0, 0.5) !important;
+            box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="text-gray-200 antialiased flex flex-col min-h-screen">
+
+<!-- WhatsApp Button -->
+<a href="https://wa.me/905418660202?text=Merhaba%20Finansal%20Dan%C4%B1%C5%9Fmanl%C4%B1k%20Platformu" target="_blank"
+   class="fixed bottom-6 right-6 z-50 bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-2xl transition-all duration-300 flex items-center justify-center w-16 h-16 animate-pulse">
+    <i class="fab fa-whatsapp text-3xl"></i>
+</a>
+
+<div id="app-root" class="flex flex-1 relative">
+    <!-- Desktop Sidebar -->
+    <aside id="desktop-sidebar" class="hidden lg:flex flex-col w-72 glass-panel h-screen sticky top-0 m-3 rounded-3xl p-5 z-30 flex-shrink-0">
+        <div class="flex items-center gap-3 mb-8 px-2">
+            <div class="w-14 h-14 bg-gradient-to-br from-yellow-400 to-amber-600 rounded-2xl flex items-center justify-center shadow-2xl">
+                <i class="fas fa-chart-line text-white text-2xl"></i>
+            </div>
+            <span class="font-bold text-base gold-text leading-tight">FİNANSAL<br>DANIŞMANLIK<br>PLATFORMU</span>
+        </div>
+        <nav class="flex flex-col gap-1 flex-1 overflow-y-auto" id="sidebar-nav"></nav>
+        <div class="mt-auto pt-4 border-t border-white/10">
+            <div class="flex items-center gap-3 px-2 py-2">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold">U</div>
+                <div>
+                    <p class="text-sm font-semibold" id="sidebar-username">Kullanıcı</p>
+                    <p class="text-xs text-yellow-400" id="sidebar-plan">Free Plan</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Mobile Sidebar -->
+    <div id="mobile-sidebar-overlay" class="fixed inset-0 bg-black/60 z-40 hidden lg:hidden backdrop-blur-sm" onclick="toggleMobileSidebar()"></div>
+    <aside id="mobile-sidebar" class="mobile-sidebar fixed top-0 left-0 h-full w-72 glass-panel z-50 lg:hidden flex flex-col p-5 rounded-r-3xl">
+        <div class="flex justify-between items-center mb-8">
+            <span class="font-bold text-lg gold-text">FİNANSAL DANIŞMANLIK</span>
+            <button onclick="toggleMobileSidebar()" class="text-white/70 hover:text-white text-xl">✕</button>
+        </div>
+        <nav class="flex flex-col gap-1 flex-1 overflow-y-auto" id="mobile-nav"></nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col p-4 lg:p-6 min-h-screen overflow-x-hidden">
+        <header class="flex items-center justify-between mb-6 lg:mb-8">
+            <button class="lg:hidden text-white text-2xl mr-3" onclick="toggleMobileSidebar()">☰</button>
+            <div class="flex items-center gap-3 ml-auto">
+                <button onclick="navigateTo('portfoy')" class="bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 px-4 py-2 rounded-full text-sm font-medium transition border border-blue-500/30">
+                    <i class="fas fa-chart-pie mr-2"></i>Portföy
+                </button>
+                <button onclick="navigateTo('abonelik')" class="bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-300 px-4 py-2 rounded-full text-sm font-medium transition border border-yellow-500/30">
+                    <i class="fas fa-crown mr-2"></i>Planı Yükselt
+                </button>
+                <button onclick="navigateTo('ai-danisman')" class="bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full text-sm font-medium transition border border-white/10">
+                    <i class="fas fa-robot mr-2"></i>AI Danışman
+                </button>
+            </div>
+        </header>
+
+        <div id="page-container" class="flex-1">
+            <div id="page-auth" class="page active-page"></div>
+            <div id="page-dashboard" class="page"></div>
+            <div id="page-finans" class="page"></div>
+            <div id="page-portfoy" class="page"></div>
+            <div id="page-hedefler" class="page"></div>
+            <div id="page-abonelik" class="page"></div>
+            <div id="page-ai-danisman" class="page"></div>
+            <div id="page-admin" class="page"></div>
+            <div id="page-market" class="page"></div>
+            <div id="page-kutuphane" class="page"></div>
+            <div id="page-icerik-uret" class="page"></div>
+            <div id="page-rapor" class="page"></div>
+        </div>
+    </main>
+</div>
+
+<!-- Footer -->
+<footer class="w-full py-8 px-6 mt-auto border-t border-yellow-500/10 bg-[#0a0e1a]/95 backdrop-blur-sm">
+    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 text-sm">
+        <div>
+            <h4 class="gold-text font-bold text-xl mb-3">Finansal Danışmanlık Platformu</h4>
+            <p class="text-gray-400 leading-relaxed">Finansal özgürlüğe giden yolda profesyonel danışmanlık ve takip çözümleri.</p>
+        </div>
+        <div>
+            <h4 class="text-white font-semibold mb-3 text-lg">Hızlı Erişim</h4>
+            <ul class="space-y-2 text-gray-400">
+                <li><a href="#" onclick="navigateTo('dashboard')" class="hover:text-yellow-400 transition">Dashboard</a></li>
+                <li><a href="#" onclick="navigateTo('portfoy')" class="hover:text-yellow-400 transition">Portföy Takibi</a></li>
+                <li><a href="#" onclick="navigateTo('hedefler')" class="hover:text-yellow-400 transition">FIRE Hedefleri</a></li>
+            </ul>
+        </div>
+        <div>
+            <h4 class="text-white font-semibold mb-3 text-lg">İletişim</h4>
+            <div class="space-y-2 text-gray-400">
+                <p class="flex items-center gap-2">
+                    <i class="fab fa-whatsapp text-green-400 text-lg"></i>
+                    <a href="https://wa.me/905418660202" target="_blank" class="hover:text-green-400 transition">0541 866 0202</a>
+                </p>
+                <p class="flex items-center gap-2">
+                    <i class="far fa-envelope text-yellow-400"></i>
+                    <a href="mailto:orhanboyraz0216@gmail.com" class="hover:text-yellow-400 transition">orhanboyraz0216@gmail.com</a>
+                </p>
+                <p class="flex items-center gap-2">
+                    <i class="fas fa-globe text-blue-400"></i>
+                    <a href="https://anadolunetwork.tr" target="_blank" class="hover:text-blue-400 transition underline">anadolunetwork.tr</a>
+                </p>
+            </div>
+        </div>
+        <div>
+            <h4 class="text-white font-semibold mb-3 text-lg">Adres</h4>
+            <p class="text-gray-400 flex items-center gap-2">
+                <i class="fas fa-map-marker-alt text-red-400"></i>
+                Nilüfer/BURSA
+            </p>
+            <p class="text-gray-500 mt-4 text-xs">© 2025 Finansal Danışmanlık Platformu<br>Tüm hakları saklıdır.</p>
+        </div>
+    </div>
+</footer>
+
+<script>
+(function() {
+    // ============ LOCAL STORAGE ============
+    const Storage = {
+        get(key, defaultValue) {
+            try {
+                const item = localStorage.getItem(`fdp_${key}`);
+                return item ? JSON.parse(item) : defaultValue;
+            } catch (e) { return defaultValue; }
+        },
+        set(key, value) {
+            localStorage.setItem(`fdp_${key}`, JSON.stringify(value));
+        }
+    };
+
+    // ============ DEMO DATA ============
+    const defaultUsers = [
+        { email: 'berkan@ornek.com', password: '123456', name: 'Berkan Boyraz', role: 'user', plan: 'pro', createdAt: '2025-01-15' },
+        { email: 'admin@ffos.com', password: 'admin123', name: 'Orhan Boyraz', role: 'admin', plan: 'vip-elite', createdAt: '2024-06-01' }
+    ];
+
+    const defaultPortfolio = [
+        { id: 1, name: 'BIST 100 Hisse', type: 'Hisse Senedi', cost: 50000, currentValue: 65000, amount: 100, icon: '📈', color: '#4ade80' },
+        { id: 2, name: 'Gram Altın', type: 'Altın', cost: 30000, currentValue: 42000, amount: 25, icon: '🪙', color: '#fbbf24' },
+        { id: 3, name: 'Fon/ETF', type: 'Fon/Etf', cost: 20000, currentValue: 24000, amount: 800, icon: '💵', color: '#60a5fa' },
+        { id: 4, name: 'Bitcoin', type: 'Kripto', cost: 15000, currentValue: 28000, amount: 0.05, icon: '₿', color: '#f7931a' },
+        { id: 5, name: 'Eurobond', type: 'Tahvil', cost: 40000, currentValue: 44000, amount: 40, icon: '📜', color: '#a78bfa' },
+        { id: 6, name: 'BES Fonu', type: 'BES', cost: 25000, currentValue: 32000, amount: 1, icon: '🏦', color: '#34d399' },
+        { id: 7, name: 'Gayrimenkul', type: 'Gayrimenkul', cost: 500000, currentValue: 650000, amount: 1, icon: '🏠', color: '#f472b6' },
+        { id: 8, name: 'Nakit TL', type: 'Nakit', cost: 10000, currentValue: 10000, amount: 10000, icon: '💰', color: '#94a3b8' }
+    ];
+
+    // Initialize
+    if (!Storage.get('users')) Storage.set('users', defaultUsers);
+    if (!Storage.get('currentUser')) Storage.set('currentUser', null);
+    if (!Storage.get('transactions')) {
+        Storage.set('transactions', [
+            { id: 1, type: 'income', category: 'Maaş', amount: 45000, date: '2025-06-01' },
+            { id: 2, type: 'expense', category: 'Kira', amount: 12000, date: '2025-06-02' },
+            { id: 3, type: 'expense', category: 'Market', amount: 4500, date: '2025-06-05' },
+            { id: 4, type: 'income', category: 'Freelance', amount: 8500, date: '2025-06-08' },
+            { id: 5, type: 'expense', category: 'Faturalar', amount: 1800, date: '2025-06-10' },
+            { id: 6, type: 'income', category: 'Pasif yatırım', amount: 3200, date: '2025-06-15' },
+        ]);
+    }
+    if (!Storage.get('portfolio')) Storage.set('portfolio', defaultPortfolio);
+    if (!Storage.get('goals')) {
+        Storage.set('goals', [{
+            id: 1, name: 'FIRE Hedefi', target: 5000000, current: 895000,
+            monthlyContribution: 20000, annualReturn: 12, inflation: 18,
+            age: 35, targetAge: 50, monthlyExpense: 30000
+        }]);
+    }
+    if (!Storage.get('budget')) {
+        Storage.set('budget', {
+            monthlyIncome: 56700,
+            monthlyExpense: 35000,
+            savings: 21700,
+            debts: 50000,
+            assets: 895000
+        });
+    }
+
+    // ============ STATE ============
+    let currentUser = Storage.get('currentUser');
+    let transactions = Storage.get('transactions');
+    let portfolio = Storage.get('portfolio');
+    let goals = Storage.get('goals');
+    let budget = Storage.get('budget');
+    let users = Storage.get('users');
+
+    function formatCurrency(amount) {
+        return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', minimumFractionDigits: 0 }).format(amount);
+    }
+
+    function updateStorage() {
+        Storage.set('currentUser', currentUser);
+        Storage.set('transactions', transactions);
+        Storage.set('portfolio', portfolio);
+        Storage.set('goals', goals);
+        Storage.set('budget', budget);
+        Storage.set('users', users);
+    }
+
+    // ============ NAVIGATION ============
+    function navigateTo(pageName) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+        const target = document.getElementById(`page-${pageName}`);
+        if (target) target.classList.add('active-page');
+        
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll(`.nav-item[data-page="${pageName}"]`).forEach(el => el.classList.add('active'));
+        
+        document.getElementById('mobile-sidebar')?.classList.remove('open');
+        document.getElementById('mobile-sidebar-overlay')?.classList.add('hidden');
+        
+        renderPage(pageName);
+    }
+
+    function renderPage(page) {
+        const pages = {
+            'auth': renderAuthPage,
+            'dashboard': renderDashboard,
+            'finans': renderFinansPage,
+            'portfoy': renderPortfoyPage,
+            'hedefler': renderHedeflerPage,
+            'abonelik': renderAbonelikPage,
+            'ai-danisman': renderAIDanismanPage,
+            'admin': renderAdminPage,
+            'market': renderMarketPage,
+            'kutuphane': renderKutuphanePage,
+            'icerik-uret': renderIcerikUretPage,
+            'rapor': renderRaporPage
+        };
+        if (pages[page]) pages[page]();
+    }
+
+    // ============ AUTH ============
+    function renderAuthPage() {
+        document.getElementById('page-auth').innerHTML = `
+        <div class="min-h-[80vh] flex items-center justify-center">
+            <div class="max-w-md w-full glass-card p-8 rounded-3xl">
+                <div class="text-center mb-6">
+                    <div class="w-20 h-20 bg-gradient-to-br from-yellow-400 to-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-2xl">
+                        <i class="fas fa-chart-line text-white text-3xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold gold-text">Finansal Danışmanlık</h2>
+                    <p class="text-gray-400 mt-2">Finansal özgürlüğe giden yol</p>
+                </div>
+                <div class="flex gap-2 mb-6 bg-white/5 rounded-xl p-1">
+                    <button id="tab-login" class="flex-1 py-2.5 rounded-lg font-medium transition bg-yellow-500/20 text-yellow-300" onclick="switchAuthTab('login')">🔑 Giriş</button>
+                    <button id="tab-register" class="flex-1 py-2.5 rounded-lg font-medium transition text-gray-400" onclick="switchAuthTab('register')">✨ Kayıt</button>
+                </div>
+                <form id="auth-form" class="space-y-4">
+                    <input type="email" id="auth-email" placeholder="E-posta adresiniz" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500">
+                    <input type="password" id="auth-password" placeholder="Şifreniz" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500">
+                    <div id="register-name-field" class="hidden">
+                        <input type="text" id="auth-name" placeholder="Adınız Soyadınız" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500">
+                    </div>
+                    <button type="submit" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-white font-semibold py-3 rounded-xl transition shadow-xl">
+                        Giriş Yap
+                    </button>
+                </form>
+                <div class="mt-6 p-4 bg-yellow-500/5 rounded-xl border border-yellow-500/20">
+                    <p class="text-xs text-yellow-400 font-semibold mb-2">🔑 Demo Hesaplar:</p>
+                    <p class="text-xs text-gray-400">👤 Kullanıcı: ahmet@ornek.com / 123456</p>
+                    <p class="text-xs text-gray-400">👑 Admin: admin@ffos.com / admin123</p>
+                </div>
+            </div>
+        </div>`;
+        
+        window.authMode = 'login';
+        
+        document.getElementById('auth-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('auth-email').value.trim();
+            const password = document.getElementById('auth-password').value;
+            const currentUsers = Storage.get('users');
+            
+            if (window.authMode === 'login') {
+                const user = currentUsers.find(u => u.email === email && u.password === password);
+                if (user) {
+                    currentUser = user;
+                    Storage.set('currentUser', user);
+                    updateSidebar();
+                    navigateTo('dashboard');
+                } else {
+                    alert('❌ Geçersiz e-posta veya şifre!\n\nDemo hesaplar:\nahmet@ornek.com / 123456\nadmin@ffos.com / admin123');
+                }
+            } else {
+                const name = document.getElementById('auth-name')?.value.trim();
+                if (!name) { alert('Lütfen adınızı girin!'); return; }
+                if (currentUsers.find(u => u.email === email)) { alert('Bu e-posta zaten kayıtlı!'); return; }
+                const newUser = { email, password, name, role: 'user', plan: 'free', createdAt: new Date().toISOString().slice(0, 10) };
+                currentUsers.push(newUser);
+                Storage.set('users', currentUsers);
+                users = currentUsers;
+                currentUser = newUser;
+                Storage.set('currentUser', newUser);
+                updateSidebar();
+                navigateTo('dashboard');
+            }
+        });
+    }
+
+    window.switchAuthTab = function(mode) {
+        window.authMode = mode;
+        document.getElementById('tab-login').className = mode === 'login' 
+            ? 'flex-1 py-2.5 rounded-lg font-medium transition bg-yellow-500/20 text-yellow-300' 
+            : 'flex-1 py-2.5 rounded-lg font-medium transition text-gray-400';
+        document.getElementById('tab-register').className = mode === 'register' 
+            ? 'flex-1 py-2.5 rounded-lg font-medium transition bg-yellow-500/20 text-yellow-300' 
+            : 'flex-1 py-2.5 rounded-lg font-medium transition text-gray-400';
+        document.getElementById('register-name-field').classList.toggle('hidden', mode !== 'register');
+        document.querySelector('#auth-form button').textContent = mode === 'login' ? 'Giriş Yap' : 'Kayıt Ol';
+    };
+
+    // ============ SIDEBAR ============
+    function buildNavItems() {
+        const items = [
+            { page: 'dashboard', icon: 'fa-th-large', label: 'Dashboard' },
+            { page: 'finans', icon: 'fa-wallet', label: 'Gelir/Gider Takibi' },
+            { page: 'portfoy', icon: 'fa-chart-pie', label: 'Portföy Takibi' },
+            { page: 'hedefler', icon: 'fa-bullseye', label: 'FIRE Hedefleri' },
+            { page: 'ai-danisman', icon: 'fa-robot', label: 'AI Danışman' },
+            { page: 'abonelik', icon: 'fa-crown', label: 'Abonelik Paketleri' },
+            { page: 'market', icon: 'fa-store', label: 'Dijital Market' },
+            { page: 'kutuphane', icon: 'fa-book-open', label: 'İçerik Kütüphanesi' },
+            { page: 'icerik-uret', icon: 'fa-pen-fancy', label: 'İçerik Üret' },
+            { page: 'rapor', icon: 'fa-file-pdf', label: 'PDF Rapor' },
+        ];
+        if (currentUser?.role === 'admin') {
+            items.push({ page: 'admin', icon: 'fa-shield-alt', label: 'Admin Panel' });
+        }
+        return items;
+    }
+
+    function updateSidebar() {
+        const navHTML = buildNavItems().map(item => `
+            <div class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl cursor-pointer text-gray-300 hover:text-white text-sm" data-page="${item.page}" onclick="navigateTo('${item.page}')">
+                <i class="fas ${item.icon} w-5 text-center"></i><span>${item.label}</span>
+            </div>
+        `).join('');
+        
+        document.getElementById('sidebar-nav').innerHTML = navHTML;
+        document.getElementById('mobile-nav').innerHTML = navHTML;
+        document.getElementById('sidebar-username').textContent = currentUser?.name || 'Kullanıcı';
+        const planNames = { 'free': 'Free', 'pro': 'Pro', 'premium': 'Premium', 'vip-elite': 'Vip Elite' };
+        document.getElementById('sidebar-plan').textContent = planNames[currentUser?.plan] || 'Free Plan';
+    }
+
+    window.toggleMobileSidebar = function() {
+        document.getElementById('mobile-sidebar')?.classList.toggle('open');
+        document.getElementById('mobile-sidebar-overlay')?.classList.toggle('hidden');
+    };
+
+    // ============ DASHBOARD ============
+    function renderDashboard() {
+        const totalIncome = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+        const totalExpense = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+        const netWorth = totalIncome - totalExpense;
+        const savingRate = totalIncome > 0 ? Math.round((netWorth / totalIncome) * 100) : 0;
+        
+        document.getElementById('page-dashboard').innerHTML = `
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold gold-text mb-2">Hoş Geldiniz, ${currentUser?.name || 'Yatırımcı'}!</h1>
+            <p class="text-gray-400">Finansal durumunuzun özeti</p>
+        </div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+            <div class="glass-card p-5">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-gray-400 text-sm">Toplam Gelir</p>
+                    <i class="fas fa-arrow-up text-green-400"></i>
+                </div>
+                <p class="text-2xl font-bold text-green-400">${formatCurrency(totalIncome)}</p>
+            </div>
+            <div class="glass-card p-5">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-gray-400 text-sm">Toplam Gider</p>
+                    <i class="fas fa-arrow-down text-red-400"></i>
+                </div>
+                <p class="text-2xl font-bold text-red-400">${formatCurrency(totalExpense)}</p>
+            </div>
+            <div class="glass-card p-5">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-gray-400 text-sm">Net Durum</p>
+                    <i class="fas fa-balance-scale text-blue-400"></i>
+                </div>
+                <p class="text-2xl font-bold text-blue-400">${formatCurrency(netWorth)}</p>
+            </div>
+            <div class="glass-card p-5">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-gray-400 text-sm">Birikim Oranı</p>
+                    <i class="fas fa-percentage text-yellow-400"></i>
+                </div>
+                <p class="text-2xl font-bold text-yellow-400">%${savingRate}</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="glass-card p-6">
+                <h3 class="font-semibold text-lg mb-4">📊 Bilanço Özeti</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between"><span class="text-gray-400">Varlıklar</span><span class="text-green-400 font-semibold">${formatCurrency(portfolio.reduce((s,a)=>s+a.currentValue,0))}</span></div>
+                    <div class="flex justify-between"><span class="text-gray-400">Borçlar</span><span class="text-red-400 font-semibold">${formatCurrency(budget.debts)}</span></div>
+                    <div class="border-t border-white/10 pt-3 flex justify-between"><span class="font-semibold">Net Varlık</span><span class="text-yellow-400 font-bold">${formatCurrency(portfolio.reduce((s,a)=>s+a.currentValue,0) - budget.debts)}</span></div>
+                </div>
+            </div>
+            <div class="glass-card p-6">
+                <h3 class="font-semibold text-lg mb-4">💰 Bütçe Performansı</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between"><span class="text-gray-400">Aylık Gelir</span><span class="text-green-400">${formatCurrency(budget.monthlyIncome)}</span></div>
+                    <div class="flex justify-between"><span class="text-gray-400">Aylık Gider</span><span class="text-red-400">${formatCurrency(budget.monthlyExpense)}</span></div>
+                    <div class="border-t border-white/10 pt-3 flex justify-between"><span class="font-semibold">Tasarruf</span><span class="text-cyan-400 font-bold">${formatCurrency(budget.savings)}</span></div>
+                </div>
+            </div>
+        </div>`;
+    }
+
+    // ============ FİNANSAL TAKİP ============
+    function renderFinansPage() {
+        document.getElementById('page-finans').innerHTML = `
+        <h2 class="text-3xl font-bold mb-6 gold-text">💰 Gelir/Gider Takibi</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="glass-card p-6">
+                <h3 class="font-semibold text-lg mb-4">Yeni İşlem Ekle</h3>
+                <form id="tx-form" class="space-y-4">
+                    <select id="tx-type" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white">
+                        <option value="income">💰 Gelir</option>
+                        <option value="expense">💸 Gider</option>
+                    </select>
+                    <input id="tx-category" placeholder="Kategori" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white">
+                    <input id="tx-amount" type="number" placeholder="Tutar (₺)" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white">
+                    <input id="tx-date" type="date" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white">
+                    <button type="submit" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-white py-3 rounded-xl font-medium">Ekle</button>
+                </form>
+            </div>
+            <div class="glass-card p-6 lg:col-span-2">
+                <h3 class="font-semibold text-lg mb-4">İşlem Geçmişi</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead><tr class="text-gray-400 border-b border-white/10"><th class="pb-2">Tür</th><th class="pb-2">Kategori</th><th class="pb-2">Tutar</th><th class="pb-2">Tarih</th></tr></thead>
+                        <tbody id="tx-list"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>`;
+        
+        function renderList() {
+            document.getElementById('tx-list').innerHTML = transactions.slice().reverse().map(t => `
+                <tr class="border-b border-white/5">
+                    <td class="py-2">${t.type === 'income' ? '<span class="text-green-400">↑ Gelir</span>' : '<span class="text-red-400">↓ Gider</span>'}</td>
+                    <td>${t.category}</td>
+                    <td class="font-semibold">${formatCurrency(t.amount)}</td>
+                    <td class="text-gray-400">${t.date}</td>
+                </tr>
+            `).join('');
+        }
+        renderList();
+        
+        document.getElementById('tx-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            transactions.push({
+                id: Date.now(),
+                type: document.getElementById('tx-type').value,
+                category: document.getElementById('tx-category').value,
+                amount: +document.getElementById('tx-amount').value,
+                date: document.getElementById('tx-date').value
+            });
+            updateStorage();
+            renderList();
+            this.reset();
+        });
+    }
+
+    // ============ PORTFÖY TAKİBİ (8 VARLIK) ============
+    function renderPortfoyPage() {
+        const totalValue = portfolio.reduce((s, a) => s + a.currentValue, 0);
+        const totalCost = portfolio.reduce((s, a) => s + a.cost, 0);
+        const totalProfit = totalValue - totalCost;
+        const profitRate = totalCost > 0 ? ((totalProfit / totalCost) * 100).toFixed(2) : 0;
+
+        document.getElementById('page-portfoy').innerHTML = `
+        <h2 class="text-3xl font-bold mb-6 gold-text">📊 Portföy Takibi</h2>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
+            <div class="glass-card p-5 text-center">
+                <p class="text-gray-400 text-sm">Toplam Portföy Değeri</p>
+                <p class="text-3xl font-bold text-yellow-400 mt-2">${formatCurrency(totalValue)}</p>
+            </div>
+            <div class="glass-card p-5 text-center">
+                <p class="text-gray-400 text-sm">Toplam Maliyet</p>
+                <p class="text-3xl font-bold text-blue-400 mt-2">${formatCurrency(totalCost)}</p>
+            </div>
+            <div class="glass-card p-5 text-center">
+                <p class="text-gray-400 text-sm">Kar/Zarar</p>
+                <p class="text-3xl font-bold mt-2 ${totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}">${totalProfit >= 0 ? '+' : ''}${formatCurrency(totalProfit)} (%${profitRate})</p>
+            </div>
+        </div>
+
+        <div class="glass-card p-6 mb-8">
+            <h3 class="font-semibold text-lg mb-4">Varlık Dağılımı</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="portfolio-grid"></div>
+        </div>
+
+        <div class="glass-card p-6">
+            <h3 class="font-semibold text-lg mb-4">Portföy Güncelle</h3>
+            <form id="portfolio-update-form" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <select id="update-asset" class="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white col-span-1">
+                    ${portfolio.map((a,i) => `<option value="${i}">${a.name}</option>`).join('')}
+                </select>
+                <input id="update-value" type="number" placeholder="Yeni Değer" class="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white">
+                <button type="submit" class="bg-yellow-500 hover:bg-yellow-600 text-white rounded-xl px-4 py-2 font-medium col-span-2 md:col-span-2">Güncelle</button>
+            </form>
+        </div>`;
+
+        // Render portfolio cards
+        document.getElementById('portfolio-grid').innerHTML = portfolio.map(a => `
+            <div class="bg-white/5 rounded-xl p-4 border border-white/5 hover:border-yellow-500/30 transition">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-2xl">${a.icon}</span>
+                    <div>
+                        <p class="font-semibold text-sm">${a.name}</p>
+                        <p class="text-xs text-gray-400">${a.type}</p>
+                    </div>
+                </div>
+                <div class="mt-3 space-y-1 text-sm">
+                    <div class="flex justify-between"><span class="text-gray-400">Maliyet:</span><span>${formatCurrency(a.cost)}</span></div>
+                    <div class="flex justify-between"><span class="text-gray-400">Güncel:</span><span class="font-semibold">${formatCurrency(a.currentValue)}</span></div>
+                    <div class="flex justify-between border-t border-white/10 pt-1">
+                        <span class="text-gray-400">K/Z:</span>
+                        <span class="${a.currentValue - a.cost >= 0 ? 'text-green-400' : 'text-red-400'} font-bold">
+                            ${a.currentValue - a.cost >= 0 ? '+' : ''}${formatCurrency(a.currentValue - a.cost)}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        document.getElementById('portfolio-update-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const index = +document.getElementById('update-asset').value;
+            const newValue = +document.getElementById('update-value').value;
+            if (newValue >= 0) {
+                portfolio[index].currentValue = newValue;
+                updateStorage();
+                renderPortfoyPage();
+            }
+        });
+    }
+
+    // ============ FIRE HEDEFLERİ (4 TÜR) ============
+    function renderHedeflerPage() {
+        const g = goals[0];
+        const monthlyExpense = g.monthlyExpense;
+        
+        // 4 FIRE türü hesaplama
+        const fireTypes = [
+            { 
+                name: 'Lean FIRE', 
+                icon: '🔥', 
+                color: 'from-green-400 to-emerald-600',
+                textColor: 'text-green-400',
+                multiplier: 0.6,
+                description: 'Minimal yaşam standardı',
+                expense: monthlyExpense * 0.6
+            },
+            { 
+                name: 'Regular FIRE', 
+                icon: '⭐', 
+                color: 'from-yellow-400 to-amber-600',
+                textColor: 'text-yellow-400',
+                multiplier: 0.8,
+                description: 'Standart yaşam',
+                expense: monthlyExpense * 0.8
+            },
+            { 
+                name: 'Fat FIRE', 
+                icon: '💎', 
+                color: 'from-purple-400 to-pink-600',
+                textColor: 'text-purple-400',
+                multiplier: 1.2,
+                description: 'Konforlu yaşam',
+                expense: monthlyExpense * 1.2
+            },
+            { 
+                name: 'Coast FIRE', 
+                icon: '🏖️', 
+                color: 'from-blue-400 to-cyan-600',
+                textColor: 'text-blue-400',
+                multiplier: 1.0,
+                description: 'Mevcut birikimin büyümesi',
+                expense: monthlyExpense
+            }
+        ];
+
+        const years = g.targetAge - g.age;
+        const annualReturn = g.annualReturn / 100;
+        const monthlyReturn = annualReturn / 12;
+        const months = years * 12;
+
+        document.getElementById('page-hedefler').innerHTML = `
+        <h2 class="text-3xl font-bold mb-6 gold-text">🎯 FIRE Hedefleri</h2>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+            ${fireTypes.map(ft => {
+                const fireNumber = ft.expense * 12 * 25; // 4% kuralı
+                const progressPercent = Math.min(100, (g.current / fireNumber * 100)).toFixed(1);
+                const neededMonthly = fireNumber > g.current ? 
+                    (fireNumber - g.current) / (((Math.pow(1 + monthlyReturn, months) - 1) / monthlyReturn)) : 0;
+                
+                return `
+                <div class="glass-card p-5 fire-card cursor-pointer">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-2xl">${ft.icon}</span>
+                        <div>
+                            <h3 class="font-bold ${ft.textColor}">${ft.name}</h3>
+                            <p class="text-xs text-gray-400">${ft.description}</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="text-gray-400">İlerleme</span>
+                                <span class="${ft.textColor}">%${progressPercent}</span>
+                            </div>
+                            <div class="w-full bg-white/10 rounded-full h-2">
+                                <div class="bg-gradient-to-r ${ft.color} h-2 rounded-full progress-bar" style="width:${progressPercent}%"></div>
+                            </div>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-400">Hedef:</span>
+                            <span class="font-semibold">${formatCurrency(fireNumber)}</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-400">Aylık Gider:</span>
+                            <span>${formatCurrency(ft.expense)}</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-400">Gerekli Katkı:</span>
+                            <span class="${ft.textColor} font-semibold">${formatCurrency(neededMonthly)}</span>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('')}
+        </div>
+
+        <div class="glass-card p-6">
+            <h3 class="font-semibold text-lg mb-4">FIRE Parametreleri</h3>
+            <form id="fire-params-form" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div>
+                    <label class="text-xs text-gray-400">Yaş</label>
+                    <input id="f-age" type="number" value="${g.age}" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white mt-1">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400">Hedef Yaş</label>
+                    <input id="f-target-age" type="number" value="${g.targetAge}" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white mt-1">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400">Mevcut Birikim</label>
+                    <input id="f-current" type="number" value="${g.current}" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white mt-1">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400">Aylık Gider</label>
+                    <input id="f-expense" type="number" value="${g.monthlyExpense}" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white mt-1">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400">Yıllık Getiri %</label>
+                    <input id="f-return" type="number" value="${g.annualReturn}" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white mt-1">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400">Enflasyon %</label>
+                    <input id="f-inflation" type="number" value="${g.inflation}" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white mt-1">
+                </div>
+                <button type="submit" class="col-span-full bg-gradient-to-r from-yellow-500 to-amber-600 text-white py-3 rounded-xl font-medium mt-2">Hesapla</button>
+            </form>
+        </div>`;
+
+        document.getElementById('fire-params-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            goals[0] = {
+                ...goals[0],
+                age: +document.getElementById('f-age').value,
+                targetAge: +document.getElementById('f-target-age').value,
+                current: +document.getElementById('f-current').value,
+                monthlyExpense: +document.getElementById('f-expense').value,
+                annualReturn: +document.getElementById('f-return').value,
+                inflation: +document.getElementById('f-inflation').value
+            };
+            updateStorage();
+            renderHedeflerPage();
+        });
+    }
+
+    // ============ DİĞER SAYFALAR ============
+    function renderAI
+
+DanışmanPage() {
+        document.getElementById('page-ai-danisman').innerHTML = `
+        <h2 class="text-3xl font-bold mb-6 gold-text">🤖 AI Danışman</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div onclick="alert('📊 BÜTÇE KOÇU: Gelir-gider dengesi: Harcamalarınızın %40\\'ı zorunlu giderler. Tasarruf oranınızı %25\\'e çıkarmak için abonelikleri gözden geçirin.')" class="glass-card p-6 cursor-pointer hover:border-yellow-500/50 transition">
+                <i class="fas fa-piggy-bank text-3xl text-green-400 mb-3"></i>
+                <h3 class="font-semibold text-lg">Bütçe / Tasarruf Koçu</h3>
+                <p class="text-sm text-gray-400">Tasarruf ve bütçe optimizasyonu</p>
+            </div>
+            <div onclick="alert('📈 YATIRIM DANIŞMANI: Portföy dağılımı: %40 hisse, %20 altın, %15 döviz, %15 tahvil, %10 kripto. Risk seviyesi: Orta. Öneri: Altın oranını %25\\'e çıkarın.')" class="glass-card p-6 cursor-pointer hover:border-yellow-500/50 transition">
+                <i class="fas fa-chart-line text-3xl text-blue-400 mb-3"></i>
+                <h3 class="font-semibold text-lg">Yatırım Danışmanı</h3>
+                <p class="text-sm text-gray-400">Portföy ve risk analizi</p>
+            </div>
+            <div onclick="alert('📋 VERGİ UZMANI: BES katkılarınızla yıllık 5.400₺ vergi avantajı elde edebilirsiniz. Ayrıca konut kredisi faiz indirimi için başvurun.')" class="glass-card p-6 cursor-pointer hover:border-yellow-500/50 transition">
+                <i class="fas fa-file-invoice text-3xl text-purple-400 mb-3"></i>
+                <h3 class="font-semibold text-lg">Vergi Uzmanı</h3>
+                <p class="text-sm text-gray-400">Vergi avantajları ve stratejiler</p>
+            </div>
+            <div onclick="alert('🔥 FIRE MENTOR: Regular FIRE için 12 yıl kaldı. Aylık 20.000₺ yatırımla hedefe ulaşabilirsiniz. Lean FIRE için sadece 7 yıl gerekiyor!')" class="glass-card p-6 cursor-pointer hover:border-yellow-500/50 transition">
+                <i class="fas fa-fire text-3xl text-orange-400 mb-3"></i>
+                <h3 class="font-semibold text-lg">FIRE Mentor</h3>
+                <p class="text-sm text-gray-400">Finansal özgürlük planı</p>
+            </div>
+        </div>`;
+    }
+
+    function renderAbonelikPage() {
+        document.getElementById('page-abonelik').innerHTML = `
+        <h2 class="text-3xl font-bold mb-8 text-center gold-text">💎 Abonelik Paketleri</h2>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            ${[
+                { name:'Free', price:0, icon:'fa-seedling', color:'green', features:['Temel takip','1 FIRE hedefi','Portföy görüntüleme'] },
+                { name:'Pro', price:149, icon:'fa-fire', color:'cyan', features:['Sınırsız hedef','AI danışman','Portföy analizi'] },
+                { name:'Premium', price:249, icon:'fa-gem', color:'purple', features:['Gelişmiş raporlar','PDF export','API erişimi'] },
+                { name:'Vip Elite', price:499, icon:'fa-crown', color:'yellow', features:['Özel danışman','Canlı destek','Kurumsal çözümler'] }
+            ].map(p => `
+            <div class="glass-card p-6 text-center ${p.name==='Pro'?'ring-2 ring-yellow-400':''}">
+                <i class="fas ${p.icon} text-3xl text-${p.color}-400 mb-3"></i>
+                <h3 class="text-xl font-bold">${p.name}</h3>
+                <p class="text-2xl font-bold my-3 text-yellow-300">${p.price===0?'Ücretsiz':'₺'+p.price+'/ay'}</p>
+                <ul class="text-sm text-gray-400 space-y-2 mb-6">${p.features.map(f=>`<li>✓ ${f}</li>`).join('')}</ul>
+                <button onclick="upgradePlan('${p.name.toLowerCase()}')" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-white py-2 rounded-xl font-medium">
+                    ${p.price===0?'Başla':'Yükselt'}
+                </button>
+            </div>`).join('')}
+        </div>`;
+    }
+
+    window.upgradePlan = function(plan) {
+        if (!currentUser) { alert('Önce giriş yapın!'); return; }
+        currentUser.plan = plan;
+        Storage.set('currentUser', currentUser);
+        users = Storage.get('users');
+        const idx = users.findIndex(u => u.email === currentUser.email);
+        if (idx !== -1) { users[idx].plan = plan; Storage.set('users', users); }
+        updateSidebar();
+        alert(`✅ Planınız "${plan}" olarak güncellendi!`);
+        navigateTo('dashboard');
+    };
+
+    function renderAdminPage() {
+        if (!currentUser || currentUser.role !== 'admin') {
+            document.getElementById('page-admin').innerHTML = '<p class="text-center text-red-400 mt-20">⛔ Yetkisiz erişim!</p>';
+            return;
+        }
+        const allUsers = Storage.get('users');
+        document.getElementById('page-admin').innerHTML = `
+        <h2 class="text-3xl font-bold mb-6 gold-text">🛡️ Admin Panel</h2>
+        <div class="glass-card p-6">
+            <h3 class="font-semibold text-lg mb-4">Kullanıcı Yönetimi</h3>
+            <table class="w-full text-left text-sm">
+                <thead><tr class="text-gray-400 border-b border-white/10"><th class="pb-2">Ad</th><th class="pb-2">Email</th><th class="pb-2">Plan</th><th class="pb-2">Rol</th></tr></thead>
+                <tbody>${allUsers.map(u => `
+                <tr class="border-b border-white/5">
+                    <td class="py-2">${u.name}</td>
+                    <td>${u.email}</td>
+                    <td class="text-yellow-300 font-semibold">${u.plan}</td>
+                    <td>${u.role}</td>
+                </tr>`).join('')}</tbody>
+            </table>
+        </div>`;
+    }
+
+    function renderMarketPage() {
+        document.getElementById('page-market').innerHTML = `
+        <h2 class="text-3xl font-bold mb-6 gold-text">🛒 Dijital Market</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            ${[
+                { icon:'📊', name:'Bütçe Excel Şablonu', price:49, desc:'Otomatik grafikli bütçe takibi' },
+                { icon:'📘', name:'Fire Rehberi E-Kitap', price:79, desc:'Yeni başlayanlar için rehber' },
+                { icon:'📘', name:'Yatırım 101 E-Kitap', price:79, desc:'Yeni başlayanlar için rehber' },
+                { icon:'🧮', name:'FIRE Hesaplama Aracı', price:0, desc:'Ücretsiz simülasyon aracı' }
+            ].map(p => `
+            <div class="glass-card p-6 text-center">
+                <span class="text-5xl mb-4 block">${p.icon}</span>
+                <h3 class="font-semibold text-lg">${p.name}</h3>
+                <p class="text-sm text-gray-400 my-2">${p.desc}</p>
+                <p class="text-2xl font-bold text-yellow-300 my-3">${p.price===0?'Ücretsiz':formatCurrency(p.price)}</p>
+                <button class="bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-300 px-6 py-2 rounded-xl transition">Sepete Ekle</button>
+            </div>`).join('')}
+        </div>`;
+    }
+
+    function renderKutuphanePage() {
+        document.getElementById('page-kutuphane').innerHTML = `
+        <h2 class="text-3xl font-bold mb-6 gold-text">📚 İçerik Kütüphanesi</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            ${[
+                { icon:'🎥', title:'Bileşik Getiri Stratejileri', duration:'12:40', type:'video' },
+                { icon:'📄', title:'Finansal Özgürlük Rehberi', duration:'8 dk okuma', type:'makale' },
+                { icon:'🎥', title:'Pasif Gelir Akışları', duration:'15:20', type:'video' },
+                { icon:'📄', title:'Vergi Avantajları 2025', duration:'6 dk okuma', type:'makale' }
+            ].map(c => `
+            <div class="glass-card p-5 flex items-center gap-4 hover:border-yellow-500/30 transition cursor-pointer">
+                <span class="text-4xl">${c.icon}</span>
+                <div>
+                    <h3 class="font-semibold">${c.title}</h3>
+                    <p class="text-sm text-gray-400 flex items-center gap-1">
+                        <i class="fas fa-${c.type==='video'?'play-circle':'book-open'}"></i> ${c.duration}
+                    </p>
+                </div>
+            </div>`).join('')}
+        </div>`;
+    }
+
+    function renderIcerikUretPage() {
+        document.getElementById('page-icerik-uret').innerHTML = `
+        <div class="max-w-3xl mx-auto glass-card p-8">
+            <h2 class="text-2xl font-bold mb-6 gold-text">✍️ İçerik Üretimi</h2>
+            <div class="space-y-4">
+                <select id="content-style" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white">
+                    <option value="profesyonel">🎯 Profesyonel</option>
+                    <option value="akademik">😊 Akademik</option>
+                    <option value="egitici">📚 Eğitici</option>
+                    <option value="motivasyonel">🔥 Motivasyonel</option>
+                </select>
+                <textarea id="content-topic" rows="4" placeholder="İçerik konusunu girin..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white"></textarea>
+                <button onclick="generateContent()" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-white py-3 rounded-xl font-medium">
+                    <i class="fas fa-magic mr-2"></i>İçerik Üret
+                </button>
+                <div id="content-output" class="hidden p-6 bg-white/5 rounded-xl border border-white/10"></div>
+            </div>
+        </div>`;
+    }
+
+    window.generateContent = function() {
+        const topic = document.getElementById('content-topic').value || 'finansal özgürlük';
+        const style = document.getElementById('content-style').value;
+        const texts = {
+            profesyonel: `📊 <strong>${topic}</strong> konusunda stratejik bir yaklaşım benimsemek, uzun vadeli finansal başarı için kritik öneme sahiptir. Veriler ışığında değerlendirdiğimizde, sistematik bir planlama ile hedeflere ulaşmak mümkündür.`,
+            samimi: `😊 Dostum, <strong>${topic}</strong> gerçekten hayatını değiştirebilir! Bak şimdi, sana günlük hayattan bir örnek vereyim. Küçük adımlarla başlayıp büyük sonuçlar elde edebilirsin.`,
+            egitici: `📚 <strong>${topic}</strong> kavramını anlamak için öncelikle temel prensipleri incelemeliyiz. Literatürde bu konu 3 ana başlıkta ele alınır: planlama, uygulama ve değerlendirme.`,
+            motivasyonel: `🔥 <strong>${topic}</strong> ile hayallerine bir adım daha yaklaş! Unutma, her büyük başarı küçük bir adımla başlar. Şimdi harekete geçme zamanı! Sen de başarabilirsin!`
+        };
+        const div = document.getElementById('content-output');
+        div.classList.remove('hidden');
+        div.innerHTML = `
+            <div class="flex items-center gap-2 mb-3">
+                <span class="text-yellow-400 font-semibold">${style.charAt(0).toUpperCase()+style.slice(1)} Stil</span>
+            </div>
+            <p class="text-gray-300 leading-relaxed">${texts[style]}</p>`;
+    };
+
+    function renderRaporPage() {
+        document.getElementById('page-rapor').innerHTML = `
+        <div class="max-w-2xl mx-auto glass-card p-8 text-center">
+            <h2 class="text-2xl font-bold mb-4 gold-text">📄 PDF Rapor Oluştur</h2>
+            <p class="text-gray-400 mb-6">Mevcut finansal durumunuzun özet raporunu PDF olarak indirin.</p>
+            <button onclick="downloadPDF()" class="bg-red-500 hover:bg-red-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition shadow-xl">
+                <i class="fas fa-download mr-2"></i>PDF İndir
+            </button>
+        </div>`;
+    }
+
+    window.downloadPDF = function() {
+        try {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFontSize(18);
+            doc.setTextColor(0, 0, 0);
+            doc.text('Finansal Danışmanlık Platformu', 20, 20);
+            doc.setFontSize(12);
+            doc.text(`Kullanıcı: ${currentUser?.name || 'Misafir'}`, 20, 35);
+            doc.text(`Tarih: ${new Date().toLocaleDateString('tr-TR')}`, 20, 45);
+            const totalValue = portfolio.reduce((s,a) => s + a.currentValue, 0);
+            doc.text(`Toplam Portföy: ${formatCurrency(totalValue)}`, 20, 55);
+            doc.text(`Net Varlık: ${formatCurrency(totalValue - budget.debts)}`, 20, 65);
+            doc.save('Finansal_Rapor.pdf');
+            alert('✅ PDF başarıyla indirildi!');
+        } catch(e) {
+            alert('PDF oluşturulurken hata oluştu.');
+        }
+    };
+
+    // ============ INIT ============
+    function bootApp() {
+        updateSidebar();
+        if (currentUser) {
+            navigateTo('dashboard');
+        } else {
+            navigateTo('auth');
+        }
+        console.log('✅ Finansal Danışmanlık Platformu hazır!');
+        console.log('👑 Admin: admin@ffos.com / admin123');
+        console.log('👤 Kullanıcı: ahmet@ornek.com / 123456');
+    }
+
+    // Global functions
+    window.navigateTo = navigateTo;
+    window.upgradePlan = window.upgradePlan || function(){};
+    
+    bootApp();
+})();
+</script>
+</body>
+</html>
